@@ -13,6 +13,30 @@ Urutan pengerjaan: `docs/panduan-eksekusi.md`
 - Android: Kotlin, min SDK 26, tanpa Compose, tanpa Room, tanpa DI. Sekecil mungkin.
 - Deploy: Vercel
 
+## Struktur: Batas Backend / Frontend
+
+Satu Next.js app, satu deploy. Pemisahan ditegakkan lewat folder, bukan lewat infra.
+
+```
+server/          BACKEND. Tidak boleh diimpor dari komponen React.
+  db/            skema Drizzle, client postgres-js, migrasi
+  parsers/       parser notifikasi per bank (Fase 0.3)
+  services/      logika domain: ingest, saran kategori, DLQ
+  auth/          session user + verifikasi token device
+app/api/         HTTP layer. Tipis: validasi Zod -> panggil service -> map ke response.
+app/             FRONTEND. Halaman & layout.
+components/      Komponen UI.
+lib/             Helper frontend: formatter, fetcher, hook.
+```
+
+Aturan:
+1. Logika domain tinggal di `server/`. Route handler tidak boleh berisi query atau
+   aturan bisnis - cuma validasi input, panggil service, bentuk response.
+2. `app/`, `components/`, `lib/` TIDAK PERNAH mengimpor `server/`. Akses data hanya
+   lewat HTTP ke `app/api/`.
+3. `server/` tidak pernah mengimpor React, komponen, atau apapun dari `lib/`.
+4. Uji sisi backend menyasar fungsi di `server/`, bukan lewat HTTP.
+
 ## Aturan Keras
 1. Uang SELALU bigint satuan minor. 10000 = Rp10.000. Tidak pernah float, termasuk di JSON.
 2. Parsing angka notifikasi pakai locale English (koma ribuan, titik desimal). Jangan pakai parseFloat mentah.
