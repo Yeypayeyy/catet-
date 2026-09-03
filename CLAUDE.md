@@ -7,7 +7,7 @@ Spesifikasi lengkap: `docs/PRD-v2-thin-native.md`
 Urutan pengerjaan: `docs/panduan-eksekusi.md`
 
 ## Stack
-- Backend + Web: Next.js 15 App Router, TypeScript strict, Tailwind, Drizzle
+- Backend + Web: Next.js 16 App Router, TypeScript strict, Tailwind, Drizzle
 - Database: Supabase PostgreSQL, SELALU lewat transaction pooler (port 6543)
 - Driver: postgres-js, pool kecil (1-2 koneksi)
 - Android: Kotlin, min SDK 26, tanpa Compose, tanpa Room, tanpa DI. Sekecil mungkin.
@@ -18,7 +18,7 @@ Urutan pengerjaan: `docs/panduan-eksekusi.md`
 Satu Next.js app, satu deploy. Pemisahan ditegakkan lewat folder, bukan lewat infra.
 
 ```
-server/          BACKEND. Tidak boleh diimpor dari komponen React.
+backend/         BACKEND. Tidak boleh diimpor dari komponen React.
   db/            skema Drizzle, client postgres-js, migrasi
   parsers/       parser notifikasi per bank (Fase 0.3)
   services/      logika domain: ingest, saran kategori, DLQ
@@ -30,12 +30,12 @@ lib/             Helper frontend: formatter, fetcher, hook.
 ```
 
 Aturan:
-1. Logika domain tinggal di `server/`. Route handler tidak boleh berisi query atau
+1. Logika domain tinggal di `backend/`. Route handler tidak boleh berisi query atau
    aturan bisnis - cuma validasi input, panggil service, bentuk response.
-2. `app/`, `components/`, `lib/` TIDAK PERNAH mengimpor `server/`. Akses data hanya
+2. `app/`, `components/`, `lib/` TIDAK PERNAH mengimpor `backend/`. Akses data hanya
    lewat HTTP ke `app/api/`.
-3. `server/` tidak pernah mengimpor React, komponen, atau apapun dari `lib/`.
-4. Uji sisi backend menyasar fungsi di `server/`, bukan lewat HTTP.
+3. `backend/` tidak pernah mengimpor React, komponen, atau apapun dari `lib/`.
+4. Uji sisi backend menyasar fungsi di `backend/`, bukan lewat HTTP.
 
 ## Aturan Keras
 1. Uang SELALU bigint satuan minor. 10000 = Rp10.000. Tidak pernah float, termasuk di JSON.

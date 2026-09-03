@@ -14,7 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
-    // Batas backend/frontend: UI tidak boleh mengimpor server/. Akses data lewat HTTP.
+    // Batas backend/frontend: UI tidak boleh mengimpor backend/. Akses data lewat HTTP.
     files: ["app/**", "components/**", "lib/**"],
     ignores: ["app/api/**"],
     rules: {
@@ -23,9 +23,9 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ["@/server/*", "@/server", "**/server/*"],
+              group: ["@/backend/*", "@/backend", "**/backend/*"],
               message:
-                "Frontend tidak boleh mengimpor server/. Akses data lewat fetch ke app/api/.",
+                "Frontend tidak boleh mengimpor backend/. Akses data lewat fetch ke app/api/.",
             },
           ],
         },
@@ -33,15 +33,15 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    // Sebaliknya: server/ murni, tanpa React.
-    files: ["server/**"],
+    // Sebaliknya: backend/ murni, tanpa React.
+    files: ["backend/**"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             { group: ["react", "react-dom", "next/*", "@/components/*", "@/lib/*"],
-              message: "server/ tidak boleh bergantung pada React atau kode frontend." },
+              message: "backend/ tidak boleh bergantung pada React atau kode frontend." },
           ],
         },
       ],

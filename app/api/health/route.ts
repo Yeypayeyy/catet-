@@ -1,4 +1,4 @@
-import { sql } from "@/server/db";
+import { sql } from "@/backend/db";
 
 export const dynamic = "force-dynamic";
 
