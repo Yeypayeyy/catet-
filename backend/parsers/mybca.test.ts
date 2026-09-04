@@ -6,7 +6,8 @@ import { parseMybca } from "./mybca.ts";
 // pernah muncul, lengkap dengan hasil yang diharapkan. Ini yang bikin parser tahan
 // perubahan format BCA.
 const REAL_SAMPLES: { body: string; amount: bigint; direction: "debit" | "credit" }[] = [
-  // { body: "...", amount: 0n, direction: "debit" },
+  // 4 Sep 2026, QRIS. title notifikasi: "Catatan Finansial".
+  { body: "Pengeluaran sebesar IDR 10,000.00 di kategori Belanja.", amount: 10000n, direction: "debit" },
 ];
 
 describe("parseMybca — format normal", () => {
