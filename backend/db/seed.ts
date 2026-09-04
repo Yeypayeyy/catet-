@@ -1,10 +1,13 @@
 // Seed data demo. Idempoten: aman dijalankan berulang.
 // Jalankan: pnpm db:seed
 import { eq } from "drizzle-orm";
+import { hashDeviceToken } from "../auth/token.ts";
 import { db, sql } from "./index.ts";
-import { accounts, categories, users } from "./schema.ts";
+import { accounts, categories, devices, users } from "./schema.ts";
 
 const DEMO_EMAIL = "demo@catet.local";
+// Token dev saja. Yang asli dibuat lewat /api/devices di Fase 1.2.
+const DEMO_TOKEN = process.env.DEMO_DEVICE_TOKEN ?? "wh_demo_token";
 
 const ACCOUNTS = [
   { name: "myBCA", kind: "bank" as const, initBalance: 0n },
@@ -57,8 +60,13 @@ async function main() {
     await db.insert(categories).values(newCategories.map((name) => ({ name, userId: user.id })));
   }
 
+  await db
+    .insert(devices)
+    .values({ userId: user.id, name: "Demo Device", tokenHash: hashDeviceToken(DEMO_TOKEN) })
+    .onConflictDoNothing({ target: devices.tokenHash });
+
   console.log(
-    `seed ok: user=${user.email} accounts+${newAccounts.length} categories+${newCategories.length}`,
+    `seed ok: user=${user.email} accounts+${newAccounts.length} categories+${newCategories.length} device token=${DEMO_TOKEN}`,
   );
   await sql.end();
 }
