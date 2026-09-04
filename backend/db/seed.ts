@@ -2,36 +2,13 @@
 // Jalankan: pnpm db:seed
 import { eq } from "drizzle-orm";
 import { hashDeviceToken } from "../auth/token.ts";
+import { DEFAULT_ACCOUNTS, DEFAULT_CATEGORIES } from "./defaults.ts";
 import { db, sql } from "./index.ts";
 import { accounts, categories, devices, users } from "./schema.ts";
 
 const DEMO_EMAIL = "demo@catet.local";
 // Token dev saja. Yang asli dibuat lewat /api/devices di Fase 1.2.
 const DEMO_TOKEN = process.env.DEMO_DEVICE_TOKEN ?? "wh_demo_token";
-
-const ACCOUNTS = [
-  { name: "myBCA", kind: "bank" as const, initBalance: 0n },
-  { name: "Cash", kind: "cash" as const, initBalance: 0n },
-  { name: "GoPay", kind: "ewallet" as const, initBalance: 0n },
-];
-
-const CATEGORIES = [
-  "Makan & Minum",
-  "Jajan",
-  "Belanja Harian",
-  "Transport",
-  "Bensin",
-  "Pulsa & Internet",
-  "Listrik & Air",
-  "Sewa & Kos",
-  "Kesehatan",
-  "Pendidikan",
-  "Hiburan",
-  "Olahraga",
-  "Donasi",
-  "Transfer",
-  "Gaji",
-];
 
 async function main() {
   const [user] = await db
@@ -45,7 +22,7 @@ async function main() {
     .from(accounts)
     .where(eq(accounts.userId, user.id));
   const haveAccount = new Set(existingAccounts.map((a) => a.name));
-  const newAccounts = ACCOUNTS.filter((a) => !haveAccount.has(a.name));
+  const newAccounts = DEFAULT_ACCOUNTS.filter((a) => !haveAccount.has(a.name));
   if (newAccounts.length) {
     await db.insert(accounts).values(newAccounts.map((a) => ({ ...a, userId: user.id })));
   }
@@ -55,7 +32,7 @@ async function main() {
     .from(categories)
     .where(eq(categories.userId, user.id));
   const haveCategory = new Set(existingCategories.map((c) => c.name));
-  const newCategories = CATEGORIES.filter((c) => !haveCategory.has(c));
+  const newCategories = DEFAULT_CATEGORIES.filter((c) => !haveCategory.has(c));
   if (newCategories.length) {
     await db.insert(categories).values(newCategories.map((name) => ({ name, userId: user.id })));
   }
