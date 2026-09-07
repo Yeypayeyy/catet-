@@ -4,7 +4,9 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -39,6 +41,8 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.open_settings).setOnClickListener {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
+
+        findViewById<Button>(R.id.battery).setOnClickListener { mintaBebasHematBaterai() }
 
         // Tombol uji cuma ada di build debug; di rilis tidak ikut terpasang.
         val tombolUji = findViewById<Button>(R.id.fire_test)
@@ -177,6 +181,28 @@ class MainActivity : Activity() {
             dasar
         }
     }
+
+    /**
+     * Tanpa pengecualian ini, OEM seperti Xiaomi mematikan listener dan job
+     * berkala saat layar mati agak lama — dan transaksi berhenti tercatat tanpa
+     * pemberitahuan apa pun.
+     */
+    private fun mintaBebasHematBaterai() {
+        if (bebasHematBaterai()) {
+            toast(getString(R.string.battery_sudah))
+            return
+        }
+        val langsung = Intent(
+            Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+            Uri.parse("package:$packageName"),
+        )
+        // Sebagian OEM menyembunyikan dialog langsungnya; jatuh ke daftar setelan.
+        val cadangan = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+        startActivity(if (langsung.resolveActivity(packageManager) != null) langsung else cadangan)
+    }
+
+    private fun bebasHematBaterai(): Boolean =
+        getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(packageName)
 
     /**
      * Tidak ada API resmi untuk menanyakan izin ini, jadi dibaca dari daftar

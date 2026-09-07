@@ -646,10 +646,60 @@ toggle, lalu cek `dumpsys activity services` sampai muncul.
 
 ---
 
+## 7 Sep 2026 — Langkah 3.6, ketahanan
+
+Empat hal kecil yang menentukan apakah app ini selamat dipakai harian di HP
+Xiaomi, atau mati diam-diam seminggu kemudian.
+
+**BOOT_COMPLETED.** Memasang ulang job berkala setelah HP menyala. Jujur saja
+ini sebagian besar redundan: WorkManager menjadwalkan ulang sendiri sesudah
+reboot, dan listener diikat lagi oleh sistem. Gunanya untuk keadaan yang tidak
+diurus keduanya — app yang pernah di-"force stop" dan kehilangan jadwalnya.
+Enqueue-nya KEEP, jadi kalau sudah ada tidak terjadi apa-apa.
+
+**Health ping tiap 6 jam.** Dikirim dengan token device, bukan polos, dan
+`/api/health` sekarang ikut memverifikasi token kalau ada. Tanpa itu pingnya
+cuma hiasan: `last_seen_at` tidak pernah terisi dan banner "device diam lebih
+dari 24 jam" di Fase 4 tidak punya dasar apa pun. Terverifikasi — ping jam
+22:23:17 WIB, dan `last_seen_at` di database persis `15:23:17Z`.
+
+**Peringatan antrian menumpuk.** Lebih dari 5 baris tertunda memunculkan
+notifikasi lokal. Awalnya cuma dipanggil sesudah pengiriman, dan itu salah:
+saat offline worker-nya tidak pernah jalan, jadi justru di keadaan yang paling
+perlu diperingatkan peringatannya tidak akan pernah muncul. Sekarang dipanggil
+dari dua tempat — sesudah notifikasi masuk (memunculkan) dan sesudah
+pengiriman (menarik kembali kalau antrian sudah lega).
+
+**Tombol bebas hemat baterai.** Tanpa pengecualian ini OEM seperti Xiaomi
+mematikan listener saat layar mati agak lama. Statusnya ikut tampil di layar
+kalau belum diberikan.
+
+### Verifikasi
+
+Offline, tujuh notifikasi ditembakkan:
+
+```
+tertunda=5
+tertunda=6   <- notifikasi "Ada transaksi yang belum terkirim" muncul di sini
+tertunda=7
+```
+
+Jaringan dinyalakan lagi: ketujuhnya terkirim, `tertunda=0`, dan peringatannya
+hilang sendiri. Enam prompt kategori terbit untuk yang formatnya terbaca; yang
+teks promo tidak memunculkan apa-apa.
+
+Satu jebakan saat memeriksa: `dumpsys notification | grep channel=peringatan`
+masih memberi satu hasil sesudah peringatannya ditarik. Itu bukan
+notifikasinya, melainkan `ranker_group` — ringkasan grup yang dibuat sistem
+sendiri saat satu app memasang banyak notifikasi. Yang asli (`id=9100`) memang
+sudah hilang.
+
+---
+
 ## Yang belum
 
-- **Langkah 3.6** — ketahanan: BOOT_COMPLETED, health ping, peringatan outbox
-  menumpuk, pengecualian battery optimization
+- **Langkah 3.6** — sisa verifikasinya: reboot HP, tunggu, tembak notifikasi
+  uji, pastikan tetap tertangkap
 - **Fase 2** — web PWA. Halaman `/` masih bawaan Next. Mulai dari langkah 2.1,
   minta design system ke Claude Design; token CSS-nya masuk ke `CLAUDE.md`
   sebelum ada layar yang dikerjakan.

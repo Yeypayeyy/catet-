@@ -21,6 +21,7 @@ class NotifikasiListener : NotificationListenerService() {
         // setiap kali service diikat, termasuk sesudah reboot.
         KirimWorker.berkala(this)
         KirimWorker.sekarang(this)
+        HealthWorker.berkala(this)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -50,7 +51,9 @@ class NotifikasiListener : NotificationListenerService() {
             return
         }
 
-        Log.d(TAG, "OUTBOX uuid=$clientUuid tertunda=${outbox.jumlahTertunda()} body=$body")
+        val tertunda = outbox.jumlahTertunda()
+        Log.d(TAG, "OUTBOX uuid=$clientUuid tertunda=$tertunda body=$body")
+        KirimWorker.peringatkanKalauMenumpuk(this, tertunda)
         KirimWorker.sekarang(this)
     }
 

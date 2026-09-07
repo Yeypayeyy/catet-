@@ -19,6 +19,11 @@
 
     <string name="open_notification_settings">Buka setelan akses notifikasi</string>
     <string name="status_pending">%1$d notifikasi menunggu dikirim.</string>
+    <string name="status_battery">Hemat baterai masih aktif — notifikasi bisa terlewat.</string>
+    <string name="battery">Minta bebas dari hemat baterai</string>
+    <string name="battery_sudah">Sudah bebas dari hemat baterai</string>
+    <string name="peringatan_judul">Ada transaksi yang belum terkirim</string>
+    <string name="peringatan_isi">%1$d notifikasi menumpuk di antrian. Cek koneksi dan token.</string>
     <string name="prompt_keluar">Pengeluaran — pilih kategori</string>
     <string name="prompt_masuk">Pemasukan — pilih kategori</string>
     <string name="prompt_merchant">Merchant</string>

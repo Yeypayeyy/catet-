@@ -1,5 +1,8 @@
 package dev.frlagee.catet
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
 import androidx.work.BackoffPolicy
@@ -67,6 +70,8 @@ class KirimWorker(context: Context, params: WorkerParameters) : Worker(context, 
                 }
             }
         }
+
+        peringatkanKalauMenumpuk(applicationContext, outbox.jumlahTertunda())
 
         // Satu saja gagal, seluruh job dijadwalkan ulang. Yang sudah terkirim
         // tidak ikut dikirim lagi karena sent_at-nya sudah terisi.
@@ -147,6 +152,46 @@ class KirimWorker(context: Context, params: WorkerParameters) : Worker(context, 
         private val butuhJaringan = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
+
+        private const val CHANNEL_PERINGATAN = "peringatan"
+        private const val ID_PERINGATAN = 9100
+
+        /** Antrian menumpuk sebanyak ini berarti ada yang salah, bukan sekadar lambat. */
+        private const val AMBANG_PERINGATAN = 5
+
+        /**
+         * Antrian yang menumpuk artinya transaksi sedang tidak tercatat, dan itu
+         * harus kelihatan. Diam-diam menumpuk adalah kegagalan paling mahal yang
+         * bisa dialami app ini.
+         *
+         * Dipanggil dari dua tempat, dan keduanya perlu: sesudah pengiriman
+         * (untuk menarik peringatan kalau antrian sudah lega) dan sesudah
+         * notifikasi masuk (karena saat offline worker-nya tidak pernah jalan,
+         * jadi kalau cuma dari sini peringatannya tidak akan pernah muncul).
+         */
+        fun peringatkanKalauMenumpuk(context: Context, tertunda: Int) {
+            val manager = context.getSystemService(NotificationManager::class.java)
+            if (tertunda <= AMBANG_PERINGATAN) {
+                // Sudah lega lagi: tarik peringatannya.
+                manager.cancel(ID_PERINGATAN)
+                return
+            }
+
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_PERINGATAN,
+                    "Peringatan",
+                    NotificationManager.IMPORTANCE_DEFAULT,
+                )
+            )
+            val notif = Notification.Builder(context, CHANNEL_PERINGATAN)
+                .setSmallIcon(android.R.drawable.stat_notify_error)
+                .setContentTitle(context.getString(R.string.peringatan_judul))
+                .setContentText(context.getString(R.string.peringatan_isi, tertunda))
+                .setOngoing(false)
+                .build()
+            manager.notify(ID_PERINGATAN, notif)
+        }
 
         /** Dipanggil begitu notifikasi masuk outbox. */
         fun sekarang(context: Context) {
