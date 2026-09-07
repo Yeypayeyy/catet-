@@ -15,6 +15,13 @@
       "when": 1788675580464,
       "tag": "0001_nosy_timeslip",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788758911392,
+      "tag": "0002_wealthy_guardian",
+      "breakpoints": true
     }
   ]
 }

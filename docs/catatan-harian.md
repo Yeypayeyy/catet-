@@ -325,9 +325,34 @@ kategori tersering. Idempotensi `client_uuid` masih utuh.
 
 ---
 
+## 7 Sep 2026 — Langkah 1.4, REST API untuk web
+
+`transactions` (daftar berfilter + pagination, input manual, detail, ubah,
+soft delete), plus CRUD `categories`, `accounts`, `merchants`, `tags`.
+Tabel `tags` dan `transaction_tags` ikut masuk.
+
+Empat resource terakhir bentuknya sama persis — milik satu user, soft delete,
+beda cuma di kolom isinya. Jadi ditulis sekali sebagai helper generik
+(`backend/services/catalog.ts`) plus pabrik route handler
+(`app/api/crud.ts`); tiap resource cuma menyumbang skema Zod dan pemetaan
+JSON-nya, sekitar 15 baris. Menulis empat modul yang isinya sama adalah cara
+paling rapi untuk membuat tiga di antaranya ketinggalan perbaikan bug.
+
+`PATCH /api/transactions/:id` yang dulu khusus kategorisasi sekarang jadi
+edit penuh; pembelajaran `hit_count` tetap jalan saat `category_id` diisi.
+Autentikasinya tetap dua jalur, tapi hanya PATCH: device boleh mengubah,
+tidak boleh membaca. `GET` dengan token device dijawab 401.
+
+Pemeriksaan yang butuh database sungguhan sekarang bisa dijalankan
+(`pnpm test:db`) lewat hook kecil di `scripts/` yang menerjemahkan alias
+`@/...` untuk node. Isinya: dua user sementara, lalu pastikan user B tidak
+bisa membaca, mengubah, maupun menghapus apa pun milik user A, dan relasi
+milik user lain ditolak saat dipasang ke transaksi. Semua lulus.
+
+---
+
 ## Yang belum
 
-- **Langkah 1.4** — REST API lengkap untuk web
 - **Langkah 1.5** — dead letter queue
 - **Fase 2** — web PWA. Halaman `/` masih halaman bawaan Next.
 - **Fase 3** — app Android, menggantikan Tasker

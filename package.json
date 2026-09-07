@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "node --env-file=.env backend/db/seed.ts",
-    "test": "node --test"
+    "test": "node --test",
+    "test:db": "node --env-file=.env --import ./scripts/register.mjs backend/services/dbcheck.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.6",

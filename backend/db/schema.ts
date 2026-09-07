@@ -6,6 +6,7 @@ import {
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -167,4 +168,35 @@ export const categoryRules = pgTable(
     ...timestamps,
   },
   (t) => [index("category_rules_user_idx").on(t.userId)],
+);
+
+// Label bebas untuk transaksi: "reimburse kantor", "patungan trip". Sengaja
+// terpisah dari kategori — satu transaksi punya satu kategori tapi bisa
+// banyak tag.
+export const tags = pgTable(
+  "tags",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    name: text("name").notNull(),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("tags_user_name_uniq").on(t.userId, t.name)],
+);
+
+export const transactionTags = pgTable(
+  "transaction_tags",
+  {
+    transactionId: uuid("transaction_id")
+      .notNull()
+      .references(() => transactions.id),
+    tagId: uuid("tag_id")
+      .notNull()
+      .references(() => tags.id),
+  },
+  // Hard delete di sini disengaja: ini baris relasi, bukan data. Melepas tag
+  // berarti melepas, bukan menyimpan jejak.
+  (t) => [primaryKey({ columns: [t.transactionId, t.tagId] })],
 );
