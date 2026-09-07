@@ -351,9 +351,36 @@ milik user lain ditolak saat dipasang ke transaksi. Semua lulus.
 
 ---
 
+## 7 Sep 2026 — Langkah 1.5, dead letter queue
+
+Tabel `dead_letters` cuma menunjuk ke `inbox_events`, tidak menyalin
+payloadnya — sudah aman di sana, tidak perlu dua salinan yang bisa beda.
+
+Yang berubah paling banyak justru `ingest.ts`: parsing sampai pembuatan
+transaksi dipindah ke `backend/services/inbox.ts` dan dipakai bareng oleh
+ingest maupun reparse. Kalau tidak, perbaikan parser cuma berlaku untuk
+notifikasi yang akan datang — persis kebalikan dari gunanya DLQ. `ingest.ts`
+sekarang tinggal urusan simpan mentah dan dedupe.
+
+Gagal tiga kali berturut-turut, event pindah ke DLQ. Reparse manual me-nol-kan
+hitungannya dulu supaya percobaan berikutnya tidak langsung mentok lagi.
+Berhasil setelah sempat masuk DLQ: barisnya ditandai `resolved_at`, tidak
+dihapus — format yang pernah bikin parser meleset masih perlu kelihatan.
+
+Endpoint `GET /api/dead-letters` (payload mentah ikut terbawa, kalau tidak
+tidak ada yang bisa dikerjakan dari halaman itu) dan
+`POST /api/dead-letters/:id/reparse`. Batch-nya: `pnpm reparse`.
+
+Diverifikasi di data sungguhan: tiga notifikasi uji yang formatnya ngaco naik
+ke `attempt_count` 3 lewat `pnpm reparse` lalu masuk DLQ. Di `pnpm test:db`
+ditambah pemeriksaan bahwa DLQ tepat terjadi di percobaan ketiga, user lain
+tidak bisa melihat maupun me-reparse milik orang, dan reparse dua kali tetap
+menghasilkan satu transaksi.
+
+---
+
 ## Yang belum
 
-- **Langkah 1.5** — dead letter queue
 - **Fase 2** — web PWA. Halaman `/` masih halaman bawaan Next.
 - **Fase 3** — app Android, menggantikan Tasker
 

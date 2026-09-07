@@ -3,12 +3,17 @@
 //
 // Idempotency disandarkan ke unique index client_uuid di database, bukan ke
 // pengecekan "select dulu baru insert" yang bisa balapan antar dua retry.
-import { and, asc, eq, isNull } from "drizzle-orm";
+//
+// Parsing sampai pembuatan transaksinya sendiri ada di inbox.ts, dipakai bareng
+// dengan reparse — supaya perbaikan parser berlaku juga untuk event lama.
+import { and, eq } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { accounts, inboxEvents, transactions } from "@/backend/db/schema";
-import { MYBCA_PARSER_VERSION, parseMybca } from "@/backend/parsers/mybca";
-import { suggestCategories, type SuggestedCategory } from "@/backend/services/suggest-categories";
+import { inboxEvents, transactions } from "@/backend/db/schema";
+import { processEvent, type ProcessResult } from "@/backend/services/inbox";
+import { suggestCategories } from "@/backend/services/suggest-categories";
 import type { DeviceIdentity } from "@/backend/auth/device";
+
+export { NoAccountError } from "@/backend/services/inbox";
 
 export type IngestInput = {
   clientUuid: string;
@@ -18,17 +23,7 @@ export type IngestInput = {
   postedAt: Date;
 };
 
-export type IngestResult =
-  | {
-      status: "parsed";
-      transactionId: string;
-      amount: bigint;
-      direction: "debit" | "credit";
-      suggestedCategories: SuggestedCategory[];
-    }
-  | { status: "failed"; reason: string };
-
-export class NoAccountError extends Error {}
+export type IngestResult = ProcessResult;
 
 export async function ingestNotification(
   device: DeviceIdentity,
@@ -52,63 +47,14 @@ export async function ingestNotification(
   // 2. client_uuid sudah pernah masuk: kembalikan hasil yang dulu, jangan bikin lagi.
   if (!event) return await previousResult(device.userId, input.clientUuid);
 
-  // 3. Parse.
-  const parsed = parseMybca(input.body);
-  if (!parsed) {
-    await db
-      .update(inboxEvents)
-      .set({
-        parseStatus: "failed",
-        parserVersion: MYBCA_PARSER_VERSION,
-        attemptCount: 1,
-        lastError: "format tidak dikenali",
-        updatedAt: new Date(),
-      })
-      .where(eq(inboxEvents.id, event.id));
-    return { status: "failed", reason: "format tidak dikenali" };
-  }
-
-  const [account] = await db
-    .select({ id: accounts.id })
-    .from(accounts)
-    .where(and(eq(accounts.userId, device.userId), isNull(accounts.deletedAt)))
-    .orderBy(asc(accounts.createdAt))
-    .limit(1);
-  if (!account) throw new NoAccountError("User belum punya account");
-
-  // 4. Transaksi belum dikategorikan; itu tugas antrian review.
-  const [tx] = await db
-    .insert(transactions)
-    .values({
-      userId: device.userId,
-      accountId: account.id,
-      inboxEventId: event.id,
-      clientUuid: input.clientUuid,
-      amount: parsed.amount,
-      direction: parsed.direction,
-      occurredAt: input.postedAt,
-      bankCategory: parsed.bankCategory,
-      source: "notification",
-      isReviewed: false,
-    })
-    .onConflictDoNothing({ target: transactions.clientUuid })
-    .returning({ id: transactions.id });
-
-  await db
-    .update(inboxEvents)
-    .set({ parseStatus: "parsed", parserVersion: MYBCA_PARSER_VERSION, updatedAt: new Date() })
-    .where(eq(inboxEvents.id, event.id));
-
-  // tx kosong = dua request identik balapan dan yang satunya menang. Ikut hasilnya.
-  if (!tx) return await previousResult(device.userId, input.clientUuid);
-
-  return {
-    status: "parsed",
-    transactionId: tx.id,
-    amount: parsed.amount,
-    direction: parsed.direction,
-    suggestedCategories: await suggestCategories(device.userId, parsed.amount, input.postedAt),
-  };
+  // 3. Parse dan bikin transaksinya.
+  return await processEvent({
+    id: event.id,
+    userId: device.userId,
+    clientUuid: input.clientUuid,
+    body: input.body,
+    postedAt: input.postedAt,
+  });
 }
 
 async function previousResult(userId: string, clientUuid: string): Promise<IngestResult> {
@@ -123,7 +69,13 @@ async function previousResult(userId: string, clientUuid: string): Promise<Inges
     .where(and(eq(transactions.clientUuid, clientUuid), eq(transactions.userId, userId)))
     .limit(1);
 
-  if (!tx) return { status: "failed", reason: "sudah diproses, tidak menghasilkan transaksi" };
+  if (!tx) {
+    return {
+      status: "failed",
+      reason: "sudah diproses, tidak menghasilkan transaksi",
+      deadLettered: false,
+    };
+  }
 
   return {
     status: "parsed",

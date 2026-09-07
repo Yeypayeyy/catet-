@@ -200,3 +200,25 @@ export const transactionTags = pgTable(
   // berarti melepas, bukan menyimpan jejak.
   (t) => [primaryKey({ columns: [t.transactionId, t.tagId] })],
 );
+
+// Event yang tetap gagal diproses setelah beberapa percobaan. Payloadnya sendiri
+// tidak disalin ke sini — sudah aman di inbox_events, cukup ditunjuk.
+export const deadLetters = pgTable(
+  "dead_letters",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    inboxEventId: uuid("inbox_event_id")
+      .notNull()
+      .references(() => inboxEvents.id),
+    reason: text("reason").notNull(),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    // Terisi kalau reparse berikutnya berhasil. Barisnya tidak dihapus supaya
+    // masih kelihatan format apa saja yang pernah bikin parser meleset.
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("dead_letters_inbox_event_uniq").on(t.inboxEventId)],
+);

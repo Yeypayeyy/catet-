@@ -46,7 +46,11 @@ export async function POST(request: Request) {
 
     // Parse gagal tetap 200: payload sudah aman tersimpan, device tidak perlu retry.
     if (result.status === "failed") {
-      return Response.json({ parse_status: "failed", reason: result.reason });
+      return Response.json({
+        parse_status: "failed",
+        reason: result.reason,
+        dead_lettered: result.deadLettered,
+      });
     }
 
     return Response.json({

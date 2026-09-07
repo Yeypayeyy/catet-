@@ -12,6 +12,8 @@ import { db, sql } from "@/backend/db";
 import {
   accounts,
   categories,
+  deadLetters,
+  inboxEvents,
   tags,
   transactionTags,
   transactions,
@@ -25,6 +27,7 @@ import {
   updateTransaction,
 } from "@/backend/services/transactions";
 import { CATALOG, createOwned, listOwned, softDeleteOwned, updateOwned } from "@/backend/services/catalog";
+import { listDeadLetters, processEvent, reparseDeadLetter } from "@/backend/services/inbox";
 
 const ids: string[] = [];
 
@@ -146,6 +149,73 @@ const [sisa] = await db
   .where(eq(transactions.id, tx.id));
 assert.ok(sisa.deletedAt, "barisnya masih ada, cuma ditandai deleted_at");
 
+// --- dead letter queue ------------------------------------------------------
+const NGACO = "Notifikasi promo, bukan transaksi sama sekali.";
+const [ev] = await db
+  .insert(inboxEvents)
+  .values({
+    userId: A.id,
+    clientUuid: crypto.randomUUID(),
+    packageName: "com.bca.mybca.omni.android",
+    title: "Catatan Finansial",
+    body: NGACO,
+    postedAt: new Date(),
+  })
+  .returning({ id: inboxEvents.id, clientUuid: inboxEvents.clientUuid });
+
+const event = { id: ev.id, userId: A.id, clientUuid: ev.clientUuid, body: NGACO, postedAt: new Date() };
+
+for (const percobaan of [1, 2, 3]) {
+  const r = await processEvent(event);
+  assert.equal(r.status, "failed");
+  assert.equal(
+    r.status === "failed" && r.deadLettered,
+    percobaan === 3,
+    `masuk DLQ tepat di percobaan ke-3, bukan ke-${percobaan}`,
+  );
+}
+
+assert.equal((await listDeadLetters(B.id, { limit: 50 })).length, 0, "DLQ A tidak terlihat oleh B");
+const dlq = await listDeadLetters(A.id, { limit: 50 });
+assert.equal(dlq.length, 1);
+assert.equal(dlq[0].attempt_count, 3);
+assert.equal(dlq[0].body, NGACO, "payload mentah ikut terbawa ke halaman DLQ");
+
+assert.equal(
+  await reparseDeadLetter(B.id, dlq[0].id),
+  null,
+  "B tidak bisa reparse dead letter milik A",
+);
+
+// Reparse yang masih gagal tidak boleh langsung masuk DLQ lagi: hitungannya
+// mulai dari nol.
+const lagi = await reparseDeadLetter(A.id, dlq[0].id);
+assert.equal(lagi?.status, "failed");
+assert.equal(lagi?.status === "failed" && lagi.deadLettered, false);
+
+// Berdiri di tempat parser yang sudah diperbaiki: body yang tadinya tidak
+// dikenali sekarang terbaca. Diwakili dengan menukar isi payload, karena
+// versi parser tidak bisa diganti saat proses sedang jalan.
+const BENAR = "Pengeluaran sebesar IDR 12,500.00 di kategori Belanja.";
+await db.update(inboxEvents).set({ body: BENAR }).where(eq(inboxEvents.id, ev.id));
+
+const sembuh = await reparseDeadLetter(A.id, dlq[0].id);
+assert.equal(sembuh?.status, "parsed", "setelah parser diperbaiki, reparse jadi transaksi");
+assert.equal(sembuh?.status === "parsed" && sembuh.amount, 12500n);
+
+assert.equal((await listDeadLetters(A.id, { limit: 50 })).length, 0, "DLQ kosong lagi");
+const arsip = await listDeadLetters(A.id, { includeResolved: true, limit: 50 });
+assert.equal(arsip.length, 1, "barisnya tidak dihapus, cuma ditandai selesai");
+assert.ok(arsip[0].resolved_at);
+
+// Reparse ulang tidak boleh bikin transaksi dobel.
+const ulang = await reparseDeadLetter(A.id, dlq[0].id);
+assert.equal(
+  ulang?.status === "parsed" && ulang.transactionId,
+  sembuh?.status === "parsed" && sembuh.transactionId,
+  "reparse dua kali tetap satu transaksi",
+);
+
 // --- bersih-bersih ----------------------------------------------------------
 const txIds = (
   await db.select({ id: transactions.id }).from(transactions).where(inArray(transactions.userId, ids))
@@ -154,10 +224,12 @@ if (txIds.length) {
   await db.delete(transactionTags).where(inArray(transactionTags.transactionId, txIds));
   await db.delete(transactions).where(inArray(transactions.id, txIds));
 }
+await db.delete(deadLetters).where(inArray(deadLetters.userId, ids));
+await db.delete(inboxEvents).where(inArray(inboxEvents.userId, ids));
 await db.delete(tags).where(inArray(tags.userId, ids));
 await db.delete(categories).where(inArray(categories.userId, ids));
 await db.delete(accounts).where(inArray(accounts.userId, ids));
 await db.delete(users).where(inArray(users.id, ids));
 
-console.log("SEMUA VERIFIKASI 1.4 LULUS");
+console.log("SEMUA PEMERIKSAAN DATABASE LULUS");
 await sql.end();
