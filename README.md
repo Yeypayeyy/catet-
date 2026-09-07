@@ -109,8 +109,9 @@ di sana satu hal, tapi yang paling mahal kalau salah: setiap query difilter
 
 ## Status
 
-Fase 0 dan Fase 1 selesai, sudah terbukti dengan transaksi sungguhan. Backend
-lengkap; yang belum ada tinggal antarmukanya.
+Fase 0, 1, dan 3 selesai. Rantai penuhnya sudah berjalan dengan transaksi
+sungguhan: notifikasi bank → Android → server → prompt kategori → satu tap.
+Yang belum ada tinggal antarmuka webnya.
 
 | | |
 |---|---|
@@ -119,8 +120,13 @@ lengkap; yang belum ada tinggal antarmukanya.
 | ✅ | Mesin saran kategori — rule-based, belajar dari `hit_count` |
 | ✅ | REST API: transaksi, kategori, wallet, merchant, tag |
 | ✅ | Dead letter queue + reparse batch |
+| ✅ | App Android: listener, outbox, pengiriman, prompt kategori |
 | ⬜ | Web PWA — halaman `/` masih bawaan Next |
-| ⬜ | App Android — sementara masih dijembatani Tasker |
+
+> **Catatan lapangan.** Di HyperOS, listener notifikasi tidak diikat lagi
+> sesudah reboot — MIUI menolaknya, dan tidak ada API yang bisa memaksanya dari
+> dalam app. Catet! mendeteksinya lalu memasang notifikasi yang mengarahkan ke
+> layar izin untuk dinyalakan ulang. Rinciannya di catatan harian.
 
 ## Dokumen
 
