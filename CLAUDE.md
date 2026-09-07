@@ -27,6 +27,7 @@ app/api/         HTTP layer. Tipis: validasi Zod -> panggil service -> map ke re
 app/             FRONTEND. Halaman & layout.
 components/      Komponen UI.
 lib/             Helper frontend: formatter, fetcher, hook.
+android/         App Android. Project Gradle terpisah, tidak ikut build Next.
 ```
 
 Aturan:

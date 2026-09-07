@@ -379,12 +379,46 @@ menghasilkan satu transaksi.
 
 ---
 
+## 7 Sep 2026 — Langkah 3.1, kerangka app Android
+
+Fase 3 dikerjakan mendahului Fase 2. Alasannya bukan teknis: trial Tasker 7
+hari mulai 4 Sep, habis sekitar 11 Sep. Kalau urutan panduan dituruti, trial
+habis di tengah Fase 2 dan selama 1–1.5 minggu itu tidak ada notifikasi myBCA
+asli yang terkumpul — padahal variasi format (transfer, pemasukan, top-up,
+tarik tunai) belum pernah kelihatan satu pun. Syarat yang panduan sebut untuk
+masuk Kotlin, "semua kontrak sudah pasti", sudah terpenuhi sejak Fase 1 kelar.
+
+Project di `android/`, Gradle terpisah dari build Next. Kotlin, minSdk 26,
+targetSdk 35, tanpa Compose. Tanpa AppCompat juga — `Activity` biasa dan tema
+bawaan sistem sudah cukup untuk satu layar berisi dua input dan dua tombol,
+dan itu satu dependensi lebih sedikit.
+
+Satu layar, isinya cuma yang tidak bisa dikerjakan di web: alamat server,
+token device, status izin notifikasi, dan tombol ke setelannya. Disimpan di
+SharedPreferences. URL di-`trimEnd('/')` saat disimpan supaya penyambungan
+path tidak pernah dobel garis miring.
+
+Status izin dibaca dari `Settings.Secure.enabled_notification_listeners` —
+tidak ada API resmi untuk menanyakannya. Dibaca ulang di `onResume`, karena
+izinnya berubah di layar sebelah, bukan di layar ini.
+
+OkHttp dan WorkManager sudah dideklarasikan meski baru dipakai di langkah 3.4;
+resolusi dependensi lebih baik meledak sekarang daripada di tengah jalan.
+
+Toolchain di laptop: Android Studio dengan SDK android-35 dan JBR 21. Gradle
+wrapper 8.11.1 dibuat dari distribusi yang sudah ada di cache. `assembleDebug`
+lulus. Pemasangan ke HP belum — tidak ada device yang tersambung ke `adb`.
+
+---
+
 ## Yang belum
 
+- **Langkah 3.1** — verifikasi pemasangan: install APK ke HP, pastikan tombol
+  "Buka setelan akses notifikasi" membuka halaman yang benar
+- **Fase 3** sisanya — listener, outbox, pengiriman, prompt kategorisasi
 - **Fase 2** — web PWA. Halaman `/` masih bawaan Next. Mulai dari langkah 2.1,
   minta design system ke Claude Design; token CSS-nya masuk ke `CLAUDE.md`
   sebelum ada layar yang dikerjakan.
-- **Fase 3** — app Android, menggantikan Tasker
 
 **Pengingat operasional:** selama masih memakai alamat WiFi lokal
 (`192.168.18.52:3000`), laptop harus menyala agar notifikasi terkirim. Tasker

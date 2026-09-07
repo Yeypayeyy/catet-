@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Catet!</string>
+
+    <string name="server_url_label">Alamat server</string>
+    <string name="server_url_hint">https://catet.example.com</string>
+    <string name="server_url_invalid">Alamat server harus diawali http:// atau https://</string>
+
+    <string name="token_label">Token device</string>
+    <string name="token_hint">wh_…</string>
+    <string name="token_invalid">Token device diawali wh_</string>
+
+    <string name="save">Simpan</string>
+    <string name="saved">Tersimpan</string>
+
+    <string name="status_ready">Siap. Izin notifikasi aktif dan server sudah diisi.</string>
+    <string name="status_no_access">Izin baca notifikasi belum diberikan.</string>
+    <string name="status_not_configured">Izin sudah aktif, tapi server atau token belum diisi.</string>
+
+    <string name="open_notification_settings">Buka setelan akses notifikasi</string>
+</resources>
