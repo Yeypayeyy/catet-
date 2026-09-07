@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Hanya untuk build debug. Server pengembangan jalan di laptop lewat WiFi
+    lokal tanpa TLS, dan sejak targetSdk 28 Android menolak HTTP polos.
+
+    Build rilis tidak memakai berkas ini sama sekali: di sana HTTP polos tetap
+    dilarang, dan memang harus — payload notifikasi keuangan tidak boleh
+    melintas jaringan tanpa TLS.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

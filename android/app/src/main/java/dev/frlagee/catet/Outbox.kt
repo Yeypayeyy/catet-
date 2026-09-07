@@ -83,6 +83,45 @@ class Outbox(context: Context) : SQLiteOpenHelper(context, NAMA, null, VERSI) {
         return if (id == -1L) null else clientUuid
     }
 
+    /** Satu baris antrian yang siap dikirim. */
+    data class Antrian(val id: Long, val clientUuid: String, val payloadJson: String)
+
+    /**
+     * Yang belum terkirim dan belum menyerah, paling tua dulu — urutan kejadian
+     * ikut terjaga di server.
+     */
+    fun belumTerkirim(batas: Int = 20): List<Antrian> =
+        readableDatabase.rawQuery(
+            "SELECT id, client_uuid, payload_json FROM outbox " +
+                "WHERE sent_at IS NULL AND attempt_count < ? ORDER BY id LIMIT ?",
+            arrayOf(MAX_PERCOBAAN.toString(), batas.toString()),
+        ).use { c ->
+            buildList {
+                while (c.moveToNext()) {
+                    add(Antrian(c.getLong(0), c.getString(1), c.getString(2)))
+                }
+            }
+        }
+
+    fun tandaiTerkirim(id: Long) {
+        writableDatabase.execSQL(
+            "UPDATE outbox SET sent_at = ?, last_error = NULL WHERE id = ?",
+            arrayOf(System.currentTimeMillis(), id),
+        )
+    }
+
+    /**
+     * Baris yang gagal tidak pernah dihapus. Setelah MAX_PERCOBAAN ia berhenti
+     * dicoba, tapi payloadnya tetap ada untuk diperiksa — sama semangatnya
+     * dengan dead letter queue di server.
+     */
+    fun catatGagal(id: Long, pesan: String) {
+        writableDatabase.execSQL(
+            "UPDATE outbox SET attempt_count = attempt_count + 1, last_error = ? WHERE id = ?",
+            arrayOf(pesan.take(300), id),
+        )
+    }
+
     /** Jumlah baris yang belum terkirim. Dipakai indikator status. */
     fun jumlahTertunda(): Int =
         readableDatabase.rawQuery("SELECT COUNT(*) FROM outbox WHERE sent_at IS NULL", null)
@@ -109,5 +148,8 @@ class Outbox(context: Context) : SQLiteOpenHelper(context, NAMA, null, VERSI) {
     companion object {
         private const val NAMA = "outbox.db"
         private const val VERSI = 1
+
+        /** Berhenti mencoba setelah sekian kali gagal. Barisnya tetap disimpan. */
+        const val MAX_PERCOBAAN = 10
     }
 }

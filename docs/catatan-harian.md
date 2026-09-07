@@ -524,9 +524,69 @@ itu tidak selalu ada di `run-as` pada HP rilis.
 
 ---
 
+## 7 Sep 2026 — Langkah 3.4, pengiriman outbox
+
+`KirimWorker` mengosongkan outbox ke `/api/ingest` dengan `Bearer` token.
+Berhasil ditandai `sent_at`; gagal menaikkan `attempt_count` dan tetap di
+antrian. Tidak ada baris yang pernah dihapus.
+
+Dipicu dua arah: langsung begitu notifikasi masuk outbox, dan berkala tiap 15
+menit sebagai jaring pengaman. Penjadwalan berkala dipasang di
+`onListenerConnected` — itu titik hidup paling andal yang dimiliki app ini,
+dipanggil sistem setiap kali service diikat.
+
+Constraint `NetworkType.CONNECTED` yang menahan job saat offline, jadi tidak
+ada percobaan sia-sia. Backoff eksponensial mulai 30 detik.
+
+### Verifikasi: offline → online
+
+Jaringan dimatikan (`svc wifi disable`, `svc data disable`), dua notifikasi
+ditembakkan:
+
+```
+D CatetListener: OUTBOX uuid=0451ce14 tertunda=1 body=Pemasukan sebesar IDR 5,000,000.00 …
+D CatetListener: OUTBOX uuid=2d260d20 tertunda=2 body=Nikmati diskon 50% …
+```
+
+Tidak ada satu pun percobaan kirim selama offline — constraint-nya bekerja.
+Jaringan dinyalakan lagi, dan dalam sepuluh detik:
+
+```
+D CatetKirim: terkirim uuid=0451ce14
+D CatetKirim: terkirim uuid=2d260d20
+```
+
+Di server, `credit 5000000` masuk sebagai transaksi dan teks promo tercatat
+`failed` di `inbox_events` tanpa jadi transaksi. **Rantai Android → server
+lengkap.**
+
+### Tiga hal yang ditemukan sambil menguji
+
+**HTTP polos ditolak sejak targetSdk 28.** Server pengembangan jalan di laptop
+lewat WiFi lokal tanpa TLS. Solusinya `network_security_config.xml` yang cuma
+ada di `src/debug/` — build rilis tetap melarang HTTP polos, dan memang harus:
+payload notifikasi keuangan tidak boleh melintas tanpa TLS.
+
+**Dua worker sempat mengirim baris yang sama.** Pemicu langsung dan job
+berkala adalah dua unique work berbeda, jadi WorkManager tidak mencegah
+keduanya jalan bersamaan; keduanya membaca antrian sebelum salah satunya
+sempat menandai `sent_at`. Server menolak yang kedua lewat `client_uuid` —
+tidak ada transaksi dobel, tapi tetap pekerjaan sia-sia. Ditutup dengan kunci
+JVM biasa, karena keduanya hidup di proses yang sama.
+
+**Selalu pastikan listener terikat sebelum menguji.** Sempat setengah jam
+mengira ada bug, padahal `cmd notification allow_listener` gagal diam-diam
+setelah satu kali `install -r`. Sekarang alurnya: toggle, lalu cek
+`dumpsys activity services dev.frlagee.catet` sampai keluar `NotifikasiListener`,
+baru menembak.
+
+---
+
 ## Yang belum
 
-- **Fase 3** sisanya — outbox, pengiriman, prompt kategorisasi
+- **Langkah 3.5** — prompt kategorisasi di notifikasi
+- **Langkah 3.6** — ketahanan: BOOT_COMPLETED, health ping, peringatan outbox
+  menumpuk, pengecualian battery optimization
 - **Fase 2** — web PWA. Halaman `/` masih bawaan Next. Mulai dari langkah 2.1,
   minta design system ke Claude Design; token CSS-nya masuk ke `CLAUDE.md`
   sebelum ada layar yang dikerjakan.

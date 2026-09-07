@@ -50,6 +50,7 @@ class MainActivity : Activity() {
             else toast(getString(R.string.need_notif_permission))
         }
 
+        aturDariShellKalauDiminta(intent)
         tembakKalauDiminta(intent)
         dumpOutboxKalauDiminta(intent)
     }
@@ -58,15 +59,37 @@ class MainActivity : Activity() {
     // lewat onCreate. Tanpa ini penembakan kedua dan seterusnya tidak terjadi.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        aturDariShellKalauDiminta(intent)
         tembakKalauDiminta(intent)
         dumpOutboxKalauDiminta(intent)
+    }
+
+    /**
+     * Mengisi alamat server dan token dari baris perintah. HyperOS menolak
+     * `input tap` dari adb, jadi tanpa ini konfigurasi tidak bisa diskripkan
+     * sama sekali:
+     *
+     *   adb shell am start --activity-single-top \
+     *     -n dev.frlagee.catet/.MainActivity \
+     *     --es server http://192.168.1.5:3000 --es token wh_xxx
+     */
+    private fun aturDariShellKalauDiminta(intent: Intent?) {
+        if (!BuildConfig.DEBUG) return
+        val server = intent?.getStringExtra("server") ?: return
+        val token = intent.getStringExtra("token") ?: return
+        Prefs.save(this, server, token)
+        Log.d(KirimWorker.TAG, "konfigurasi diatur dari shell: $server")
+        KirimWorker.sekarang(this)
+        serverInput.setText(Prefs.serverUrl(this))
+        tokenInput.setText(Prefs.deviceToken(this))
     }
 
     /**
      * Menumpahkan isi outbox ke Logcat. Sebagian HP tidak punya sqlite3 di
      * `run-as`, jadi ini cara paling murah untuk melihat tabelnya:
      *
-     *   adb shell am start --activity-single-top      *     -n dev.frlagee.catet/.MainActivity --ez dump true
+     *   adb shell am start --activity-single-top \
+     *     -n dev.frlagee.catet/.MainActivity --ez dump true
      */
     private fun dumpOutboxKalauDiminta(intent: Intent?) {
         if (!BuildConfig.DEBUG) return
@@ -80,7 +103,8 @@ class MainActivity : Activity() {
      * Menembak notifikasi uji dari baris perintah, supaya pengujian tidak selalu
      * butuh tangan di layar:
      *
-     *   adb shell am start --activity-single-top      *     -n dev.frlagee.catet/.MainActivity --ez tembak true
+     *   adb shell am start --activity-single-top \
+     *     -n dev.frlagee.catet/.MainActivity --ez tembak true
      *
      * --activity-single-top wajib. Tanpa itu Activity yang sudah di depan cuma
      * dibawa ke muka tanpa intent baru, jadi tidak ada yang tertembak dan
@@ -130,6 +154,8 @@ class MainActivity : Activity() {
         }
 
         Prefs.save(this, url, token)
+        // Alamat baru diisi berarti antrian yang tertahan bisa jalan sekarang.
+        KirimWorker.sekarang(this)
         serverInput.setText(url)
         tokenInput.setText(token)
         toast(getString(R.string.saved))

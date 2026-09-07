@@ -17,6 +17,10 @@ class NotifikasiListener : NotificationListenerService() {
 
     override fun onListenerConnected() {
         Log.d(TAG, "listener tersambung")
+        // Titik hidup paling andal yang dimiliki app ini: dipanggil sistem
+        // setiap kali service diikat, termasuk sesudah reboot.
+        KirimWorker.berkala(this)
+        KirimWorker.sekarang(this)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -47,6 +51,7 @@ class NotifikasiListener : NotificationListenerService() {
         }
 
         Log.d(TAG, "OUTBOX uuid=$clientUuid tertunda=${outbox.jumlahTertunda()} body=$body")
+        KirimWorker.sekarang(this)
     }
 
     private fun dariBank(packageName: String): Boolean {
