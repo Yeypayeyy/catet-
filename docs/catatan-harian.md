@@ -381,7 +381,9 @@ menghasilkan satu transaksi.
 
 ## Yang belum
 
-- **Fase 2** — web PWA. Halaman `/` masih halaman bawaan Next.
+- **Fase 2** — web PWA. Halaman `/` masih bawaan Next. Mulai dari langkah 2.1,
+  minta design system ke Claude Design; token CSS-nya masuk ke `CLAUDE.md`
+  sebelum ada layar yang dikerjakan.
 - **Fase 3** — app Android, menggantikan Tasker
 
 **Pengingat operasional:** selama masih memakai alamat WiFi lokal
@@ -391,5 +393,7 @@ Deploy ke Vercel kalau mau dipakai sehari-hari.
 
 **Yang perlu dikumpulkan sambil jalan:** variasi notifikasi myBCA selain
 pengeluaran QRIS — transfer, pemasukan, top-up, tarik tunai, biaya admin.
-Yang gagal parse otomatis terarsip di `inbox_events`, jadi tidak ada yang
-hilang dan bisa ditarik kapan saja untuk ditambahkan sebagai test case.
+Yang gagal parse otomatis terarsip di `inbox_events` dan, setelah tiga kali
+gagal, muncul di `GET /api/dead-letters` lengkap dengan payload mentahnya.
+Jadi tidak ada yang hilang: tambahkan formatnya sebagai test case, perbaiki
+parser, lalu `pnpm reparse`.

@@ -98,20 +98,28 @@ Providers, dan daftarkan `<url>/api/auth/callback` di Redirect URLs.
 pnpm db:migrate    # jalankan migrasi
 pnpm db:seed       # data demo, idempoten
 pnpm dev
-pnpm test          # unit test parser
+pnpm test          # unit test murni, tanpa database
+pnpm test:db       # pemeriksaan yang butuh database sungguhan
+pnpm reparse       # proses ulang inbox_events yang belum jadi transaksi
 ```
+
+`pnpm test:db` membuat dua user sementara lalu menghapusnya lagi. Yang dijaga
+di sana satu hal, tapi yang paling mahal kalau salah: setiap query difilter
+`user_id`, dan relasi milik user lain ditolak.
 
 ## Status
 
-Fase 0 selesai dan sudah terbukti dengan transaksi sungguhan. Fase 1 sedang
-berjalan.
+Fase 0 dan Fase 1 selesai, sudah terbukti dengan transaksi sungguhan. Backend
+lengkap; yang belum ada tinggal antarmukanya.
 
 | | |
 |---|---|
 | ✅ | Skema database, parser myBCA, endpoint ingest |
 | ✅ | Login Google, device & token webhook |
-| ⬜ | Mesin saran kategori, REST API web, dead letter queue |
-| ⬜ | Web PWA |
+| ✅ | Mesin saran kategori — rule-based, belajar dari `hit_count` |
+| ✅ | REST API: transaksi, kategori, wallet, merchant, tag |
+| ✅ | Dead letter queue + reparse batch |
+| ⬜ | Web PWA — halaman `/` masih bawaan Next |
 | ⬜ | App Android — sementara masih dijembatani Tasker |
 
 ## Dokumen
