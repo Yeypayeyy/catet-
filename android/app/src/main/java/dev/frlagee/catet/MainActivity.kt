@@ -48,6 +48,31 @@ class MainActivity : Activity() {
             if (izinNotifikasiSiap()) toast(NotifikasiUji.tembak(this))
             else toast(getString(R.string.need_notif_permission))
         }
+
+        tembakKalauDiminta(intent)
+    }
+
+    // am start menghidupkan ulang Activity yang sudah ada lewat sini, bukan
+    // lewat onCreate. Tanpa ini penembakan kedua dan seterusnya tidak terjadi.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        tembakKalauDiminta(intent)
+    }
+
+    /**
+     * Menembak notifikasi uji dari baris perintah, supaya pengujian tidak selalu
+     * butuh tangan di layar:
+     *
+     *   adb shell am start --activity-single-top      *     -n dev.frlagee.catet/.MainActivity --ez tembak true
+     *
+     * --activity-single-top wajib. Tanpa itu Activity yang sudah di depan cuma
+     * dibawa ke muka tanpa intent baru, jadi tidak ada yang tertembak dan
+     * kelihatan seperti listener yang mati.
+     */
+    private fun tembakKalauDiminta(intent: Intent?) {
+        if (!BuildConfig.DEBUG) return
+        if (intent?.getBooleanExtra("tembak", false) != true) return
+        NotifikasiUji.tembak(this)
     }
 
     /**

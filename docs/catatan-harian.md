@@ -444,12 +444,50 @@ Android 13 memasang notifikasi butuh izin runtime, jadi tekanan pertama
 meminta izin dan tidak menembak — kalau ditembak sekarang notifikasinya
 dibuang diam-diam dan kelihatan seperti listener yang mati.
 
+### Verifikasi di HP (Xiaomi 22021211RG, Android 14 / HyperOS)
+
+```
+D CatetListener: TANGKAP pkg=dev.frlagee.catet body=Pengeluaran sebesar IDR 1,250,000.00 di kategori Belanja.
+D CatetListener: TANGKAP pkg=dev.frlagee.catet body=Pemasukan sebesar IDR 5,000,000.00 di kategori Gaji.
+D CatetListener: TANGKAP pkg=dev.frlagee.catet body=Nikmati diskon 50% di merchant pilihan!
+D CatetListener: TANGKAP pkg=dev.frlagee.catet body=Pengeluaran sebesar IDR 10,000.00 di kategori Belanja.
+```
+
+Keempat format tertangkap utuh, termasuk nominal jutaan yang komanya paling
+gampang bikin parser meleset.
+
+### Tiga jebakan adb di HyperOS
+
+Ketiganya menghabiskan waktu lebih lama daripada menulis listener-nya sendiri,
+jadi ditulis di sini supaya tidak diulang.
+
+**1. `adb install -r` memutus ikatan listener.** Setelah pasang ulang, service
+tetap terdaftar di `enabled_notification_listeners` tapi tidak terikat lagi —
+`dumpsys activity services dev.frlagee.catet` kosong. Tidak perlu buka Settings;
+matikan lalu nyalakan dari shell:
+
+```
+adb shell cmd notification disallow_listener dev.frlagee.catet/dev.frlagee.catet.NotifikasiListener
+adb shell cmd notification allow_listener   dev.frlagee.catet/dev.frlagee.catet.NotifikasiListener
+```
+
+Beri jeda beberapa detik sesudahnya. Tembakan pertama tepat setelah pasang
+ulang biasanya hilang karena prosesnya belum sepenuhnya bangun.
+
+**2. `am start` tanpa `--activity-single-top` tidak mengantar intent baru.**
+Activity yang sudah di depan cuma dibawa ke muka, `onNewIntent` tidak dipanggil,
+tidak ada yang tertembak — dan gejalanya persis sama dengan listener yang mati.
+Ini yang paling lama menyesatkan.
+
+**3. `pm grant` dan `input tap` ditolak.** HyperOS mengunci keduanya di balik
+"USB debugging (Security settings)" yang butuh akun Xiaomi dan SIM. Jadi izin
+runtime harus lewat dialog, dan penekanan tombol tidak bisa diskripkan. Itu
+alasan penembak uji dibuat bisa dipanggil lewat `am start`, bukan cuma tombol.
+
 ---
 
 ## Yang belum
 
-- **Langkah 3.2** — verifikasi di HP: aktifkan Catet! di setelan akses
-  notifikasi, tekan "Tembak notifikasi uji", lihat Logcat tag `CatetListener`
 - **Fase 3** sisanya — outbox, pengiriman, prompt kategorisasi
 - **Fase 2** — web PWA. Halaman `/` masih bawaan Next. Mulai dari langkah 2.1,
   minta design system ke Claude Design; token CSS-nya masuk ke `CLAUDE.md`
