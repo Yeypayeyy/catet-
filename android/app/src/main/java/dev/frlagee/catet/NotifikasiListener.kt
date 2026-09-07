@@ -6,8 +6,8 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 
 /**
- * Menangkap notifikasi myBCA. Langkah 3.2: baru mencatat ke Logcat, belum
- * menyimpan dan belum mengirim.
+ * Menangkap notifikasi myBCA dan menaruhnya di outbox. Langkah 3.3: belum
+ * dikirim, itu tugas WorkManager di langkah berikutnya.
  *
  * Service ini menerima SELURUH notifikasi di HP, termasuk yang isinya pribadi.
  * Karena itu penyaringan dilakukan sedini mungkin dan yang tidak lolos tidak
@@ -39,7 +39,14 @@ class NotifikasiListener : NotificationListenerService() {
             return
         }
 
-        Log.d(TAG, "TANGKAP pkg=${sbn.packageName} posted=${sbn.postTime} body=$body")
+        val outbox = Outbox(this)
+        val clientUuid = outbox.simpan(sbn.packageName, title, body, sbn.postTime)
+        if (clientUuid == null) {
+            Log.d(TAG, "DILEWATI, notifikasi ini sudah ada di outbox")
+            return
+        }
+
+        Log.d(TAG, "OUTBOX uuid=$clientUuid tertunda=${outbox.jumlahTertunda()} body=$body")
     }
 
     private fun dariBank(packageName: String): Boolean {

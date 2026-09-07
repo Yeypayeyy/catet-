@@ -486,6 +486,44 @@ alasan penembak uji dibuat bisa dipanggil lewat `am start`, bukan cuma tombol.
 
 ---
 
+## 7 Sep 2026 — Langkah 3.3, outbox SQLite
+
+`SQLiteOpenHelper` mentah, satu tabel `outbox`, tanpa Room. Listener tidak
+lagi cuma mencatat ke Logcat: payload disusun jadi JSON persis sebentuk
+kontrak `/api/ingest` lalu masuk antrian. Belum dikirim.
+
+`client_uuid` dibuat di device dengan `UUID.randomUUID()` — itu yang jadi
+kunci idempotency di server, jadi kirim ulang tidak pernah menggandakan
+transaksi.
+
+Ditulis serentak di thread pemanggil, bukan di latar. Kalau prosesnya mati
+sesaat setelah notifikasi datang, barisnya harus sudah ada di disk;
+kehilangan transaksi lebih mahal daripada callback yang tertahan satu
+milidetik.
+
+Ada kolom `dedupe_key` (`paket|postedAt|body`, UNIQUE) untuk mencegat
+notifikasi yang sama persis diantar dua kali — terjadi saat listener
+terhubung ulang atau callback terpanggil dobel. `client_uuid`-nya akan beda
+tiap kali, jadi dedupe di server tidak bisa menolong. Dua transaksi berbeda
+dengan nominal sama tidak ikut terbuang karena `postedAt`-nya beda.
+
+Verifikasi di HP, empat tembakan lalu `--ez dump true`:
+
+```
+DUMP tertunda=3
+DUMP #3 uuid=a8909915 sent=- attempt=0 payload={"client_uuid":"a8909915-…","package_name":"dev.frlagee.catet","title":"Catatan Finansial","body":"Nikmati diskon 50% di merchant pilihan!","posted_at":1788793030917}
+DUMP #2 uuid=17dffac8 sent=- attempt=0 payload={… "body":"Pemasukan sebesar IDR 5,000,000.00 di kategori Gaji." …}
+DUMP #1 uuid=6efaf785 sent=- attempt=0 payload={… "body":"Pengeluaran sebesar IDR 1,250,000.00 di kategori Belanja." …}
+```
+
+Bentuk payloadnya sudah sama persis dengan yang diterima `/api/ingest`, jadi
+langkah 3.4 tinggal mengirimkan apa adanya.
+
+Isi tabel dilihat lewat `--ez dump true` ke Logcat, bukan `sqlite3` — biner
+itu tidak selalu ada di `run-as` pada HP rilis.
+
+---
+
 ## Yang belum
 
 - **Fase 3** sisanya — outbox, pengiriman, prompt kategorisasi

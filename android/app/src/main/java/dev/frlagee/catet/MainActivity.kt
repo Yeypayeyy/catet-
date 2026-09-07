@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -50,6 +51,7 @@ class MainActivity : Activity() {
         }
 
         tembakKalauDiminta(intent)
+        dumpOutboxKalauDiminta(intent)
     }
 
     // am start menghidupkan ulang Activity yang sudah ada lewat sini, bukan
@@ -57,6 +59,21 @@ class MainActivity : Activity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         tembakKalauDiminta(intent)
+        dumpOutboxKalauDiminta(intent)
+    }
+
+    /**
+     * Menumpahkan isi outbox ke Logcat. Sebagian HP tidak punya sqlite3 di
+     * `run-as`, jadi ini cara paling murah untuk melihat tabelnya:
+     *
+     *   adb shell am start --activity-single-top      *     -n dev.frlagee.catet/.MainActivity --ez dump true
+     */
+    private fun dumpOutboxKalauDiminta(intent: Intent?) {
+        if (!BuildConfig.DEBUG) return
+        if (intent?.getBooleanExtra("dump", false) != true) return
+        val outbox = Outbox(this)
+        Log.d(NotifikasiListener.TAG, "DUMP tertunda=${outbox.jumlahTertunda()}")
+        outbox.ringkasan().forEach { Log.d(NotifikasiListener.TAG, "DUMP $it") }
     }
 
     /**
@@ -122,10 +139,16 @@ class MainActivity : Activity() {
     private fun tampilkanStatus() {
         val izin = notificationAccessGranted()
         val siap = izin && Prefs.isConfigured(this)
-        statusText.text = when {
+        val dasar = when {
             siap -> getString(R.string.status_ready)
             !izin -> getString(R.string.status_no_access)
             else -> getString(R.string.status_not_configured)
+        }
+        val tertunda = Outbox(this).jumlahTertunda()
+        statusText.text = if (tertunda > 0) {
+            dasar + "\n" + getString(R.string.status_pending, tertunda)
+        } else {
+            dasar
         }
     }
 
