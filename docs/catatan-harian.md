@@ -696,10 +696,90 @@ sudah hilang.
 
 ---
 
+## 7 Sep 2026 — Tes reboot, dan batas yang tidak bisa dilewati
+
+Tes reboot langkah 3.6 gagal, tiga kali berturut-turut, dan penyebabnya bukan
+di kode kita. Ini catatan paling penting di seluruh Fase 3.
+
+### Apa yang terjadi
+
+Sesudah HP menyala, listener notifikasi **tidak pernah diikat lagi**. Ditunggu
+tiga menit, tetap nol. Log sistemnya terang-terangan:
+
+```
+AutoStartManagerServiceStubImpl: MIUILOG- Reject service :
+  cmp=dev.frlagee.catet/.NotifikasiListener
+NotificationListeners: AutStart Unable to bind notification listener service
+```
+
+Android sendiri sudah mencoba mengikat, dua kali. **MIUI yang menolak** — meski
+Catet! ada di daftar "Mulai otomatis di latar belakang", meski bebas dari hemat
+baterai, meski izin akses notifikasinya masih tercatat.
+
+### Yang sudah dicoba
+
+`NotificationListenerService.requestRebind()` adalah API resmi untuk kasus ini.
+Hasil pengukuran:
+
+| Dipanggil dari | Hasil |
+|---|---|
+| Activity, sesudah `install -r` | berhasil, terikat < 5 detik |
+| `BOOT_COMPLETED` | tidak terjadi apa-apa, tanpa exception |
+| Activity, sesudah ditolak MIUI saat boot | tidak terjadi apa-apa juga |
+
+Sesudah MIUI menolak sekali, permintaan bind dari app tidak lagi digubris sama
+sekali. Satu-satunya yang memulihkan adalah **user mematikan lalu menyalakan
+kembali izin akses notifikasi**. Diverifikasi lewat
+`cmd notification disallow_listener` + `allow_listener`, yang setara dengan
+menggeser sakelarnya di Settings: langsung terikat.
+
+### Yang akhirnya dikerjakan
+
+Tidak ada trik dari dalam app yang bisa melawan ini, jadi yang dikerjakan bukan
+menambah akal-akalan, melainkan **menukar kegagalan diam-diam dengan kegagalan
+yang kelihatan**:
+
+1. `BootReceiver` memasang notifikasi yang membuka layar izin akses notifikasi,
+   dengan pesan "matikan lalu nyalakan lagi izin Catet!". Notifikasi ini ditarik
+   sendiri oleh `onListenerConnected` — di HP yang sistemnya mengikat normal,
+   user tidak akan pernah melihatnya.
+2. Layar status bisa membedakan dua keadaan yang tampak sama: izin belum
+   diberikan, versus izin ada tapi listener tidak pernah hidup sejak boot.
+   Caranya menyimpan penanda sesi nyala HP (`currentTimeMillis` dikurangi
+   `elapsedRealtime`) setiap kali listener tersambung, lalu membandingkannya.
+
+Untuk app pencatat keuangan, transaksi yang berhenti tercatat tanpa ada yang
+memberi tahu adalah kegagalan paling mahal yang mungkin terjadi. Satu tap
+tambahan sesudah reboot jauh lebih murah daripada itu.
+
+### Sisanya tetap lulus
+
+Sesudah izin dinyalakan ulang, rantai penuhnya jalan lagi tanpa cacat:
+
+```
+D CatetListener: OUTBOX uuid=e2acc982 body=Pengeluaran sebesar IDR 10,000.00 …
+D CatetKirim:    terkirim uuid=e2acc982 POST /api/ingest
+D CatetListener: dilewati, judul lain: Rp10.000
+```
+
+`BootReceiver` sendiri terbukti jalan (log "HP menyala, memasang ulang jadwal"
+muncul ~2 menit sesudah boot) dan job berkalanya terpasang ulang, 19 job.
+Catatan buat diri sendiri: sesudah reboot, MIUI butuh waktu beberapa menit
+sebelum melepas app ke latar belakang. Memeriksa 10 detik sesudah boot cuma
+menghasilkan kesimpulan yang salah — sempat dua kali tertipu begitu.
+
+### Yang ini menegaskan rencana Fase 4
+
+Banner di web kalau device diam lebih dari 24 jam bukan lagi fitur pelengkap,
+melainkan jaring pengaman utama untuk keadaan ini. Pondasinya sudah ada: health
+ping enam jaman yang mengisi `last_seen_at`.
+
+---
+
 ## Yang belum
 
-- **Langkah 3.6** — sisa verifikasinya: reboot HP, tunggu, tembak notifikasi
-  uji, pastikan tetap tertangkap
+- **Verifikasi terakhir 3.6** — reboot sekali lagi untuk memastikan notifikasi
+  pemulihan yang baru muncul dengan tujuan yang benar
 - **Fase 2** — web PWA. Halaman `/` masih bawaan Next. Mulai dari langkah 2.1,
   minta design system ke Claude Design; token CSS-nya masuk ke `CLAUDE.md`
   sebelum ada layar yang dikerjakan.

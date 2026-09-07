@@ -22,6 +22,9 @@
     <string name="status_battery">Hemat baterai masih aktif — notifikasi bisa terlewat.</string>
     <string name="battery">Minta bebas dari hemat baterai</string>
     <string name="battery_sudah">Sudah bebas dari hemat baterai</string>
+    <string name="ingatkan_judul">Pembacaan notifikasi mati</string>
+    <string name="ingatkan_isi">HP baru menyala. Ketuk, lalu matikan dan nyalakan lagi izin Catet!.</string>
+    <string name="status_mati_sejak_boot">Izin ada, tapi pembacaan notifikasi tidak hidup sejak HP menyala. Matikan lalu nyalakan lagi izinnya.</string>
     <string name="peringatan_judul">Ada transaksi yang belum terkirim</string>
     <string name="peringatan_isi">%1$d notifikasi menumpuk di antrian. Cek koneksi dan token.</string>
     <string name="prompt_keluar">Pengeluaran — pilih kategori</string>

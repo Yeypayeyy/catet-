@@ -2,6 +2,7 @@ package dev.frlagee.catet
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.SystemClock
 
 /**
  * Satu-satunya tempat penyimpanan di HP selain outbox nanti: alamat server dan
@@ -31,4 +32,29 @@ object Prefs {
 
     fun isConfigured(context: Context): Boolean =
         serverUrl(context).isNotEmpty() && deviceToken(context).isNotEmpty()
+
+    /**
+     * Penanda sesi nyala HP. Waktu dinding dikurangi lama menyala = kira-kira
+     * kapan HP booting, dan angkanya tetap sama sepanjang sesi itu. Dibulatkan
+     * ke menit supaya pergeseran kecil jam sistem tidak dianggap reboot.
+     */
+    private fun bootId(): Long =
+        (System.currentTimeMillis() - SystemClock.elapsedRealtime()) / 60_000
+
+    private const val KEY_BOOT = "listener_boot_id"
+
+    /** Dipanggil listener setiap kali sistem mengikatnya. */
+    fun tandaiListenerTersambung(context: Context) {
+        of(context).edit().putLong(KEY_BOOT, bootId()).apply()
+    }
+
+    /**
+     * Apakah listener pernah tersambung sejak HP menyala terakhir kali.
+     *
+     * Ini yang membedakan "izinnya belum diberikan" dari "izinnya ada tapi
+     * MIUI menolak mengikatnya sesudah reboot" — dua keadaan yang di layar
+     * kelihatan sama persis, padahal obatnya beda.
+     */
+    fun listenerHidupSejakBoot(context: Context): Boolean =
+        of(context).getLong(KEY_BOOT, Long.MIN_VALUE) == bootId()
 }

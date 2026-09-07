@@ -17,6 +17,10 @@ class NotifikasiListener : NotificationListenerService() {
 
     override fun onListenerConnected() {
         Log.d(TAG, "listener tersambung")
+        Prefs.tandaiListenerTersambung(this)
+        // Kalau ada ajakan dari boot tadi, sekarang sudah tidak perlu.
+        getSystemService(android.app.NotificationManager::class.java)
+            .cancel(BootReceiver.ID_INGATKAN)
         // Titik hidup paling andal yang dimiliki app ini: dipanggil sistem
         // setiap kali service diikat, termasuk sesudah reboot.
         KirimWorker.berkala(this)

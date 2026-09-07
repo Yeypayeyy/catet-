@@ -139,6 +139,9 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        // Membuka app juga memperbaiki ikatan listener yang putus — jaring
+        // kedua kalau BOOT_COMPLETED sempat terlewat.
+        if (notificationAccessGranted()) BootReceiver.mintaIkatUlangListener(this)
         // Izin bisa berubah di layar Settings, jadi statusnya dibaca ulang tiap
         // kembali ke sini, bukan sekali saat dibuat.
         tampilkanStatus()
@@ -168,11 +171,14 @@ class MainActivity : Activity() {
 
     private fun tampilkanStatus() {
         val izin = notificationAccessGranted()
-        val siap = izin && Prefs.isConfigured(this)
+        val hidup = Prefs.listenerHidupSejakBoot(this)
         val dasar = when {
-            siap -> getString(R.string.status_ready)
             !izin -> getString(R.string.status_no_access)
-            else -> getString(R.string.status_not_configured)
+            // Izin ada tapi listener tidak pernah tersambung sejak HP menyala:
+            // khas MIUI sesudah reboot. Obatnya beda, jadi pesannya beda.
+            !hidup -> getString(R.string.status_mati_sejak_boot)
+            !Prefs.isConfigured(this) -> getString(R.string.status_not_configured)
+            else -> getString(R.string.status_ready)
         }
         val tertunda = Outbox(this).jumlahTertunda()
         statusText.text = if (tertunda > 0) {
