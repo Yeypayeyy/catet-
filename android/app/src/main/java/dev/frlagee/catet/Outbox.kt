@@ -23,6 +23,8 @@ class Outbox(context: Context) : SQLiteOpenHelper(context, NAMA, null, VERSI) {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 client_uuid TEXT NOT NULL UNIQUE,
                 dedupe_key TEXT NOT NULL UNIQUE,
+                metode TEXT NOT NULL DEFAULT 'POST',
+                path TEXT NOT NULL DEFAULT '/api/ingest',
                 payload_json TEXT NOT NULL,
                 created_at INTEGER NOT NULL,
                 sent_at INTEGER,
@@ -36,7 +38,12 @@ class Outbox(context: Context) : SQLiteOpenHelper(context, NAMA, null, VERSI) {
     }
 
     override fun onUpgrade(db: SQLiteDatabase, dari: Int, ke: Int) {
-        // Belum ada versi lama yang beredar.
+        // v2: antrian tidak lagi cuma untuk ingest. Pemilihan kategori dari
+        // notifikasi ikut lewat sini supaya dapat retry dan backoff yang sama.
+        if (dari < 2) {
+            db.execSQL("ALTER TABLE outbox ADD COLUMN metode TEXT NOT NULL DEFAULT 'POST'")
+            db.execSQL("ALTER TABLE outbox ADD COLUMN path TEXT NOT NULL DEFAULT '/api/ingest'")
+        }
     }
 
     /**
@@ -83,8 +90,34 @@ class Outbox(context: Context) : SQLiteOpenHelper(context, NAMA, null, VERSI) {
         return if (id == -1L) null else clientUuid
     }
 
+    /**
+     * Antrekan permintaan selain ingest — sekarang cuma pemilihan kategori dari
+     * notifikasi. Lewat antrian, bukan HTTP langsung, supaya kalau sedang
+     * offline pilihannya tidak hilang; retry dan backoff-nya ikut yang sudah ada.
+     */
+    fun antre(metode: String, path: String, payloadJson: String, dedupeKey: String): Boolean {
+        val nilai = ContentValues().apply {
+            put("client_uuid", UUID.randomUUID().toString())
+            put("dedupe_key", dedupeKey)
+            put("metode", metode)
+            put("path", path)
+            put("payload_json", payloadJson)
+            put("created_at", System.currentTimeMillis())
+        }
+        val id = writableDatabase.insertWithOnConflict(
+            "outbox", null, nilai, SQLiteDatabase.CONFLICT_IGNORE
+        )
+        return id != -1L
+    }
+
     /** Satu baris antrian yang siap dikirim. */
-    data class Antrian(val id: Long, val clientUuid: String, val payloadJson: String)
+    data class Antrian(
+        val id: Long,
+        val clientUuid: String,
+        val metode: String,
+        val path: String,
+        val payloadJson: String,
+    )
 
     /**
      * Yang belum terkirim dan belum menyerah, paling tua dulu — urutan kejadian
@@ -92,13 +125,18 @@ class Outbox(context: Context) : SQLiteOpenHelper(context, NAMA, null, VERSI) {
      */
     fun belumTerkirim(batas: Int = 20): List<Antrian> =
         readableDatabase.rawQuery(
-            "SELECT id, client_uuid, payload_json FROM outbox " +
+            "SELECT id, client_uuid, metode, path, payload_json FROM outbox " +
                 "WHERE sent_at IS NULL AND attempt_count < ? ORDER BY id LIMIT ?",
             arrayOf(MAX_PERCOBAAN.toString(), batas.toString()),
         ).use { c ->
             buildList {
                 while (c.moveToNext()) {
-                    add(Antrian(c.getLong(0), c.getString(1), c.getString(2)))
+                    add(
+                        Antrian(
+                            c.getLong(0), c.getString(1), c.getString(2),
+                            c.getString(3), c.getString(4),
+                        )
+                    )
                 }
             }
         }
@@ -147,7 +185,7 @@ class Outbox(context: Context) : SQLiteOpenHelper(context, NAMA, null, VERSI) {
 
     companion object {
         private const val NAMA = "outbox.db"
-        private const val VERSI = 1
+        private const val VERSI = 2
 
         /** Berhenti mencoba setelah sekian kali gagal. Barisnya tetap disimpan. */
         const val MAX_PERCOBAAN = 10

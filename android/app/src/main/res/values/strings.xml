@@ -19,6 +19,9 @@
 
     <string name="open_notification_settings">Buka setelan akses notifikasi</string>
     <string name="status_pending">%1$d notifikasi menunggu dikirim.</string>
+    <string name="prompt_keluar">Pengeluaran — pilih kategori</string>
+    <string name="prompt_masuk">Pemasukan — pilih kategori</string>
+    <string name="prompt_merchant">Merchant</string>
     <string name="fire_test">Tembak notifikasi uji</string>
     <string name="need_notif_permission">Izinkan notifikasi dulu, lalu tekan lagi</string>
 </resources>

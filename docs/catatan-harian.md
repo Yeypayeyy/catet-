@@ -582,9 +582,72 @@ baru menembak.
 
 ---
 
+## 7 Sep 2026 — Langkah 3.5, prompt kategorisasi
+
+Bagian yang bikin seluruh proyek ini ada gunanya. Setelah transaksi tercatat,
+notifikasi muncul di HP dengan judul nominal terformat dan tiga tombol
+kategori dari `suggested_categories`, plus satu kolom ketik untuk merchant —
+myBCA tidak pernah mengirim nama merchant.
+
+Channel-nya `IMPORTANCE_HIGH` supaya muncul sebagai heads-up, bukan mengendap
+di laci notifikasi.
+
+**Pilihan kategori tidak dikirim lewat HTTP langsung, tapi diantrekan ke
+outbox.** Awalnya terasa berputar, tapi itu justru yang paling sedikit
+kodenya: retry, backoff, constraint jaringan, dan dedupe sudah ada semua di
+sana. Konsekuensinya jawaban "kalau offline masuk outbox juga" jadi gratis,
+bukan cabang baru yang harus ditulis dan diuji sendiri.
+
+Outbox naik ke versi 2 dengan kolom `metode` dan `path`. Satu tabel melayani
+`POST /api/ingest` dan `PATCH /api/transactions/:id` sekaligus.
+
+Notifikasi ditutup begitu tombol ditekan, tanpa menunggu server. Kalau
+pengirimannya gagal, barisnya tetap di outbox dan dicoba lagi — menahan
+notifikasi di layar cuma bikin ragu tanpa menambah jaminan apa pun.
+
+### Penjaga anti-loop terbukti bekerja
+
+Prompt ini terbit dari paket yang sama dengan yang didengarkan listener di
+build debug. Yang mencegahnya berputar tanpa henti cuma judulnya, dan itu
+kelihatan di log:
+
+```
+D CatetKirim:    terkirim uuid=b0a8f120 POST /api/ingest
+D CatetListener: dilewati, judul lain: Rp1.250.000
+```
+
+Listener melihat notifikasi promptnya sendiri lalu menolaknya. Catatan waktu
+langkah 3.2 itu bukan sekadar niat baik di komentar.
+
+### Verifikasi: satu tap, tanpa membuka app apa pun
+
+Notifikasi uji ditembakkan, prompt muncul, tombol "Transfer" ditekan di HP:
+
+```
+D CatetKirim: kategori dipilih tx=af5be55f kategori=217daa41-…
+D CatetKirim: terkirim uuid=d92a75d1 PATCH /api/transactions/af5be55f-…
+```
+
+Di database:
+
+```
+af5be55f 1250000 kategori=Transfer merchant=- reviewed=true
+```
+
+**Rantai penuh selesai:** notifikasi bank → listener → outbox → server →
+transaksi → prompt di HP → satu tap → terkategori. Tanpa membuka aplikasi
+apa pun, di kedua ujungnya.
+
+### Jebakan adb keempat
+
+Setelah `install -r`, `allow_listener` tidak mengikat apa-apa kalau proses
+app-nya belum hidup. Urutannya jadi: pasang, **buka Activity dulu**, baru
+toggle, lalu cek `dumpsys activity services` sampai muncul.
+
+---
+
 ## Yang belum
 
-- **Langkah 3.5** — prompt kategorisasi di notifikasi
 - **Langkah 3.6** — ketahanan: BOOT_COMPLETED, health ping, peringatan outbox
   menumpuk, pengecualian battery optimization
 - **Fase 2** — web PWA. Halaman `/` masih bawaan Next. Mulai dari langkah 2.1,

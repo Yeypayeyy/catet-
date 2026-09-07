@@ -16,6 +16,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /**
@@ -53,14 +54,17 @@ class KirimWorker(context: Context, params: WorkerParameters) : Worker(context, 
 
         var gagal = 0
         for (item in antrian) {
-            val hasil = kirim("$server/api/ingest", token, item.payloadJson)
-            if (hasil == null) {
-                outbox.tandaiTerkirim(item.id)
-                Log.d(TAG, "terkirim uuid=${item.clientUuid.take(8)}")
-            } else {
-                gagal++
-                outbox.catatGagal(item.id, hasil)
-                Log.w(TAG, "gagal uuid=${item.clientUuid.take(8)}: $hasil")
+            when (val hasil = kirim(item.metode, "$server${item.path}", token, item.payloadJson)) {
+                is Hasil.Berhasil -> {
+                    outbox.tandaiTerkirim(item.id)
+                    Log.d(TAG, "terkirim uuid=${item.clientUuid.take(8)} ${item.metode} ${item.path}")
+                    if (item.metode == "POST") promptKalauJadiTransaksi(hasil.body)
+                }
+                is Hasil.Gagal -> {
+                    gagal++
+                    outbox.catatGagal(item.id, hasil.pesan)
+                    Log.w(TAG, "gagal uuid=${item.clientUuid.take(8)}: ${hasil.pesan}")
+                }
             }
         }
 
@@ -69,23 +73,62 @@ class KirimWorker(context: Context, params: WorkerParameters) : Worker(context, 
         return if (gagal > 0) Result.retry() else Result.success()
     }
 
-    /** null = berhasil. Selain itu, pesan kegagalan untuk disimpan. */
-    private fun kirim(url: String, token: String, payload: String): String? {
+    private sealed interface Hasil {
+        data class Berhasil(val body: String) : Hasil
+        data class Gagal(val pesan: String) : Hasil
+    }
+
+    private fun kirim(metode: String, url: String, token: String, payload: String): Hasil {
+        val badan = payload.toRequestBody(JSON)
         val request = Request.Builder()
             .url(url)
             .header("Authorization", "Bearer $token")
-            .post(payload.toRequestBody(JSON))
+            .method(metode, badan)
             .build()
 
         return try {
             klien.newCall(request).execute().use { response ->
                 // Parse gagal pun dijawab 200 oleh server: payloadnya sudah aman
                 // tersimpan di sana, jadi device tidak perlu mencoba lagi.
-                if (response.isSuccessful) null
-                else "HTTP ${response.code}"
+                if (response.isSuccessful) Hasil.Berhasil(response.body?.string().orEmpty())
+                else Hasil.Gagal("HTTP ${response.code}")
             }
         } catch (e: Exception) {
-            e.message ?: e.javaClass.simpleName
+            Hasil.Gagal(e.message ?: e.javaClass.simpleName)
+        }
+    }
+
+    /**
+     * Inti dari seluruh proyek: begitu transaksi tercatat, prompt kategori
+     * muncul di HP. Notifikasi yang tidak terbaca parser dijawab
+     * `parse_status: failed` dan tidak memunculkan apa-apa — lebih baik diam
+     * daripada bertanya tentang transaksi yang tidak ada.
+     */
+    private fun promptKalauJadiTransaksi(body: String) {
+        if (body.isBlank()) return
+        try {
+            val json = JSONObject(body)
+            if (json.optString("parse_status") != "parsed") return
+
+            val saran = json.optJSONArray("suggested_categories")
+            val kategori = buildList {
+                for (i in 0 until (saran?.length() ?: 0)) {
+                    val k = saran!!.getJSONObject(i)
+                    add(k.getString("id") to k.getString("name"))
+                }
+            }
+
+            PromptKategori.tampilkan(
+                applicationContext,
+                json.getString("transaction_id"),
+                json.getString("amount"),
+                json.optString("direction", "debit"),
+                kategori,
+            )
+        } catch (e: Exception) {
+            // Prompt yang gagal muncul tidak boleh membatalkan pengiriman —
+            // transaksinya sudah aman tercatat di server.
+            Log.w(TAG, "gagal menampilkan prompt: ${e.message}")
         }
     }
 
