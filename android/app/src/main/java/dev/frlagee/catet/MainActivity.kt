@@ -1,9 +1,13 @@
 package dev.frlagee.catet
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -34,6 +38,33 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.open_settings).setOnClickListener {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
+
+        // Tombol uji cuma ada di build debug; di rilis tidak ikut terpasang.
+        val tombolUji = findViewById<Button>(R.id.fire_test)
+        tombolUji.visibility = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
+        tombolUji.setOnClickListener {
+            // Kalau izinnya baru diminta, jangan tembak dulu — notifikasinya
+            // akan dibuang diam-diam dan kelihatan seperti listener yang mati.
+            if (izinNotifikasiSiap()) toast(NotifikasiUji.tembak(this))
+            else toast(getString(R.string.need_notif_permission))
+        }
+    }
+
+    /**
+     * Sejak Android 13 memasang notifikasi butuh izin runtime. Cuma dipakai
+     * tombol uji dan, nanti, prompt kategorisasi.
+     *
+     * false berarti izinnya baru saja diminta; dialognya masih di layar.
+     */
+    private fun izinNotifikasiSiap(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return true
+        }
+        requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+        return false
     }
 
     override fun onResume() {

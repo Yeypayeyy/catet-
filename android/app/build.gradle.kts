@@ -15,6 +15,12 @@ android {
         versionName = "0.1"
     }
 
+    // BuildConfig.DEBUG dipakai untuk mengurung tombol uji dan penerimaan
+    // notifikasi dari paket sendiri. Sejak AGP 8 harus diminta eksplisit.
+    buildFeatures {
+        buildConfig = true
+    }
+
     buildTypes {
         release {
             // Belum ada yang perlu disembunyikan, dan minify bikin stack trace

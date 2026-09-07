@@ -411,11 +411,46 @@ lulus. Pemasangan ke HP belum — tidak ada device yang tersambung ke `adb`.
 
 ---
 
+## 7 Sep 2026 — Langkah 3.2, listener notifikasi
+
+`NotifikasiListener` menyaring paket `com.bca.mybca.omni.android` dan judul
+"Catatan Finansial", lalu baru mencatat ke Logcat. Belum menyimpan, belum
+mengirim.
+
+Isi notifikasi dibaca dari `EXTRA_BIG_TEXT` dulu, baru `EXTRA_TEXT` sebagai
+cadangan — yang kedua dipotong kalau notifikasinya panjang, dan nominal yang
+terpotong lebih buruk daripada tidak tercatat sama sekali.
+
+Service ini menerima seluruh notifikasi di HP, termasuk yang isinya pribadi.
+Jadi penyaringannya sedini mungkin dan yang tidak lolos tidak pernah ikut
+tercatat. Di manifest: `exported="false"` dengan penjaga
+`BIND_NOTIFICATION_LISTENER_SERVICE`, izin bertanda tangan — yang boleh
+mengikat cuma sistem.
+
+Satu penyimpangan dari panduan: app dummy penembak notifikasi tidak dibuat
+sebagai APK terpisah, tapi jadi tombol di dalam app ini yang cuma muncul di
+build debug. Alasannya applicationId `com.bca.mybca.omni.android` tidak bisa
+dipakai — myBCA asli sudah terpasang di HP dan tanda tangannya beda, jadi
+pemasangannya pasti ditolak. Sebagai gantinya listener menerima notifikasi
+dari paketnya sendiri, khusus di debug.
+
+Yang perlu diingat gara-gara itu: prompt kategorisasi di langkah 3.5 juga
+terbit dari paket ini. Yang mencegah umpan balik cuma judulnya — prompt itu
+berjudul nominal, bukan "Catatan Finansial". Jangan pernah disamakan.
+
+Tombol uji menembak empat format bergantian: pengeluaran, nominal jutaan,
+pemasukan, dan satu teks promo yang memang tidak dikenali parser. Sejak
+Android 13 memasang notifikasi butuh izin runtime, jadi tekanan pertama
+meminta izin dan tidak menembak — kalau ditembak sekarang notifikasinya
+dibuang diam-diam dan kelihatan seperti listener yang mati.
+
+---
+
 ## Yang belum
 
-- **Langkah 3.1** — verifikasi pemasangan: install APK ke HP, pastikan tombol
-  "Buka setelan akses notifikasi" membuka halaman yang benar
-- **Fase 3** sisanya — listener, outbox, pengiriman, prompt kategorisasi
+- **Langkah 3.2** — verifikasi di HP: aktifkan Catet! di setelan akses
+  notifikasi, tekan "Tembak notifikasi uji", lihat Logcat tag `CatetListener`
+- **Fase 3** sisanya — outbox, pengiriman, prompt kategorisasi
 - **Fase 2** — web PWA. Halaman `/` masih bawaan Next. Mulai dari langkah 2.1,
   minta design system ke Claude Design; token CSS-nya masuk ke `CLAUDE.md`
   sebelum ada layar yang dikerjakan.
