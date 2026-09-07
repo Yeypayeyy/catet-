@@ -303,10 +303,30 @@ Lima commit di-push ke `origin/main`.
 
 ---
 
+## 6 Sep 2026 — Langkah 1.3, mesin saran kategori
+
+Tabel `category_rules` dan `merchants` masuk. Satu tabel untuk tiga jenis
+aturan; yang membedakan cuma kolom mana yang terisi — nominal persis
+(`amount_min` = `amount_max`), rentang nominal, atau window waktu WIB.
+
+Bagian yang menentukan urutan (`rankRules`) sengaja dipisah ke
+`backend/services/category-rank.ts` tanpa import apa pun, supaya bisa diuji
+`node --test` tanpa database. Delapan test, termasuk window yang melewati
+tengah malam dan nominal di atas `Number.MAX_SAFE_INTEGER`.
+
+`PATCH /api/transactions/:id` ikut dibuat karena tanpa itu `hit_count` tidak
+pernah naik dan langkah ini tidak bisa diverifikasi. Autentikasinya dua jalur:
+cookie session dari web, atau `Bearer wh_...` dari Android.
+
+Verifikasi lewat server sungguhan, user demo: pilih satu kategori berulang
+untuk nominal Rp10.000, dan kategori itu naik ke posisi pertama pada saran
+berikutnya. Nominal lain tidak ikut terpengaruh — jatuh ke fallback tiga
+kategori tersering. Idempotensi `client_uuid` masih utuh.
+
+---
+
 ## Yang belum
 
-- **Langkah 1.3** — mesin saran kategori (`category_rules`, `merchants`,
-  belajar dari `hit_count`)
 - **Langkah 1.4** — REST API lengkap untuk web
 - **Langkah 1.5** — dead letter queue
 - **Fase 2** — web PWA. Halaman `/` masih halaman bawaan Next.

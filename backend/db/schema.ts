@@ -123,3 +123,48 @@ export const transactions = pgTable(
     index("transactions_user_reviewed_idx").on(t.userId, t.isReviewed),
   ],
 );
+
+// Merchant dipelajari dari input user, bukan dari notifikasi — myBCA tidak
+// mengirim nama merchant sama sekali.
+export const merchants = pgTable(
+  "merchants",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    name: text("name").notNull(),
+    defaultCategoryId: uuid("default_category_id").references(() => categories.id),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("merchants_user_name_uniq").on(t.userId, t.name)],
+);
+
+// Mesin saran kategori. Satu tabel untuk tiga jenis aturan; yang membedakan
+// cuma kolom mana yang terisi:
+//   nominal persis  -> amount_min = amount_max
+//   rentang nominal -> amount_min/amount_max berbeda
+//   window waktu    -> minute_start/minute_end (menit dalam hari, WIB)
+// Aturan boleh menggabungkan keduanya; semua kolom yang terisi harus cocok.
+export const categoryRules = pgTable(
+  "category_rules",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => categories.id),
+    merchantId: uuid("merchant_id").references(() => merchants.id),
+    amountMin: bigint("amount_min", { mode: "bigint" }),
+    amountMax: bigint("amount_max", { mode: "bigint" }),
+    minuteStart: integer("minute_start"),
+    minuteEnd: integer("minute_end"),
+    priority: integer("priority").notNull().default(0),
+    hitCount: integer("hit_count").notNull().default(0),
+    isAutoLearned: boolean("is_auto_learned").notNull().default(false),
+    ...timestamps,
+  },
+  (t) => [index("category_rules_user_idx").on(t.userId)],
+);

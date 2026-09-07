@@ -18,6 +18,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Request bertoken device (Android menekan tombol kategori di notifikasi)
+  // tidak punya cookie session. Lolos di sini, tokennya diverifikasi di route
+  // handler — bukan kelonggaran, cuma jenis autentikasi yang berbeda.
+  if (request.headers.get("authorization")?.startsWith("Bearer wh_")) {
+    return NextResponse.next();
+  }
+
   const response = NextResponse.next();
   const supabase = createSupabaseServerClient({
     getAll: () => request.cookies.getAll(),

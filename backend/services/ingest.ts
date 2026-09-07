@@ -5,8 +5,9 @@
 // pengecekan "select dulu baru insert" yang bisa balapan antar dua retry.
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { db } from "@/backend/db";
-import { accounts, categories, inboxEvents, transactions } from "@/backend/db/schema";
+import { accounts, inboxEvents, transactions } from "@/backend/db/schema";
 import { MYBCA_PARSER_VERSION, parseMybca } from "@/backend/parsers/mybca";
+import { suggestCategories, type SuggestedCategory } from "@/backend/services/suggest-categories";
 import type { DeviceIdentity } from "@/backend/auth/device";
 
 export type IngestInput = {
@@ -16,8 +17,6 @@ export type IngestInput = {
   body: string;
   postedAt: Date;
 };
-
-export type SuggestedCategory = { id: string; name: string };
 
 export type IngestResult =
   | {
@@ -30,16 +29,6 @@ export type IngestResult =
   | { status: "failed"; reason: string };
 
 export class NoAccountError extends Error {}
-
-// ponytail: 3 kategori pertama milik user. Mesin saran beneran menyusul di Fase 1.3.
-async function suggestCategories(userId: string): Promise<SuggestedCategory[]> {
-  return db
-    .select({ id: categories.id, name: categories.name })
-    .from(categories)
-    .where(and(eq(categories.userId, userId), isNull(categories.deletedAt)))
-    .orderBy(asc(categories.createdAt))
-    .limit(3);
-}
 
 export async function ingestNotification(
   device: DeviceIdentity,
@@ -118,7 +107,7 @@ export async function ingestNotification(
     transactionId: tx.id,
     amount: parsed.amount,
     direction: parsed.direction,
-    suggestedCategories: await suggestCategories(device.userId),
+    suggestedCategories: await suggestCategories(device.userId, parsed.amount, input.postedAt),
   };
 }
 
@@ -128,6 +117,7 @@ async function previousResult(userId: string, clientUuid: string): Promise<Inges
       id: transactions.id,
       amount: transactions.amount,
       direction: transactions.direction,
+      occurredAt: transactions.occurredAt,
     })
     .from(transactions)
     .where(and(eq(transactions.clientUuid, clientUuid), eq(transactions.userId, userId)))
@@ -140,6 +130,6 @@ async function previousResult(userId: string, clientUuid: string): Promise<Inges
     transactionId: tx.id,
     amount: tx.amount,
     direction: tx.direction,
-    suggestedCategories: await suggestCategories(userId),
+    suggestedCategories: await suggestCategories(userId, tx.amount, tx.occurredAt),
   };
 }

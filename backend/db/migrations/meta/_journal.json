@@ -8,6 +8,13 @@
       "when": 1788422366814,
       "tag": "0000_curly_madelyne_pryor",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788675580464,
+      "tag": "0001_nosy_timeslip",
+      "breakpoints": true
     }
   ]
 }
