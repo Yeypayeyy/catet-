@@ -55,7 +55,34 @@ Aturan:
 - Validasi input dengan Zod di setiap route handler.
 
 ## Design Token
-[isi dari Claude Design setelah Fase 2.1]
+
+Token lengkap ada di `app/globals.css` — itu satu-satunya sumber. Jangan
+menyalinnya ke sini; yang di bawah cuma aturan pakainya.
+
+- **Warna lewat variabel, tidak pernah hex di komponen.** `--surface`,
+  `--border`, `--ink` / `--ink-2` / `--ink-3`, `--accent`.
+- **Monokrom + satu aksen.** Warna lain hanya membawa makna: `--income`
+  (hijau) untuk pemasukan, `--warning` (kuning) hanya untuk banner,
+  `--danger` (merah) hanya untuk destruktif dan gagal.
+- **Pengeluaran netral, tanpa tanda minus.** Pengeluaran jauh lebih sering,
+  jadi tidak diwarnai. Pemasukan `+Rp…` hijau.
+- **Nominal `Rp10.000`** — tanpa spasi, tanpa desimal, ribuan titik, selalu
+  tabular-nums. Satu-satunya pemformat: `formatRupiah()` di `lib/format.ts`.
+- **Dark mode via class `.dark` di `<html>`.** Sekarang dipasang mati di
+  `layout.tsx` (dark-first); togglenya menyusul di layar Pengaturan.
+- **Radius:** kartu 20, tombol/input 14, chip bulat penuh. Kartu = `--surface`
+  + garis 1px, tanpa bayangan, tanpa gradient.
+- **Sentuh:** tinggi kontrol 48 (kecil 36), chip 40, target minimum 44.
+- **Ikon** digambar di `components/Icon.tsx` dari path Lucide yang disalin ke
+  dalam kode. Tanpa CDN, tanpa dependensi. Tambah ikon = tambah path.
+- **Bahasa UI:** kalimat pendek berisi angka ("3 transaksi menunggu
+  kategori"). Tanpa seruan, tanpa emoji, tanpa menyapa "kamu". Imperatif
+  untuk aksi: Simpan, Lewati, Cek device. Kondisi kosong adalah kabar baik.
+
+Komponen dasar ada di `components/ui.tsx` dan `components/TransactionCard.tsx`.
+Gayanya inline style yang menunjuk CSS variable — itu disengaja, jangan
+diterjemahkan ke class Tailwind. Tailwind dipakai untuk tata letak halaman.
+Pemeriksanya: `/showcase`.
 
 ## Yang Tidak Boleh Dilakukan
 - Jangan tambahkan library baru tanpa ditanyakan dulu

@@ -1,26 +1,257 @@
 @import "tailwindcss";
 
+/* Design token Catet!, dari Claude Design (Fase 2.1).
+   Sumber lengkap beserta guideline ada di sistem desainnya; yang di sini
+   adalah token yang benar-benar dipakai kode.
+
+   Dua penyesuaian dari berkas aslinya:
+   1. Font tidak diimpor dari Google Fonts — Geist sudah dimuat next/font di
+      layout.tsx, jadi --font-sans menunjuk ke variabelnya. Satu permintaan
+      jaringan lebih sedikit, dan tidak ada yang keluar ke pihak ketiga.
+   2. Dark mode dipasang sebagai class .dark di <html>. Belum ada togglenya;
+      app ini dark-first dan togglenya menyusul di layar Pengaturan. */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f4f4f5;
+  --surface: #ffffff;
+  --surface-2: #f7f7f8;
+  --surface-pressed: #ededef;
+  --border: #e4e4e7;
+  --border-strong: #c9c9cf;
+
+  --ink: #111114;
+  --ink-2: #55555e;
+  --ink-3: #85858e;
+  --ink-inverse: #fafafa;
+
+  --accent: oklch(0.52 0.15 240);
+  --accent-fg: #ffffff;
+  --accent-hover: oklch(0.46 0.15 240);
+  --accent-soft: oklch(0.94 0.03 240);
+
+  /* Pengeluaran jauh lebih sering daripada pemasukan, jadi sengaja netral dan
+     tanpa tanda minus. Yang diberi warna cuma yang jarang: pemasukan. */
+  --income: #1e8a4a;
+  --income-bg: #e4f3ea;
+  --expense: var(--ink);
+
+  --warning: #9a6a12;
+  --warning-fg: #6b4a0b;
+  --warning-bg: #fbf2de;
+  --warning-border: #e8d3a4;
+
+  --danger: #be3a2e;
+  --danger-bg: #fbe9e6;
+
+  --focus-ring: oklch(0.52 0.15 240 / 0.35);
+  --overlay: rgba(17, 17, 20, 0.5);
+
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0c0c0e;
+  --surface: #15151a;
+  --surface-2: #1d1d23;
+  --surface-pressed: #26262e;
+  --border: #26262e;
+  --border-strong: #3a3a45;
+
+  --ink: #f2f2f4;
+  --ink-2: #a3a3ad;
+  --ink-3: #6c6c76;
+  --ink-inverse: #0c0c0e;
+
+  --accent: oklch(0.75 0.12 240);
+  --accent-fg: #0c0c0e;
+  --accent-hover: oklch(0.7 0.12 240);
+  --accent-soft: oklch(0.28 0.05 240);
+
+  --income: #4fcb7c;
+  --income-bg: #10281a;
+  --expense: var(--ink);
+
+  --warning: #e3b549;
+  --warning-fg: #f0cb6e;
+  --warning-bg: #262012;
+  --warning-border: #4a3e1c;
+
+  --danger: #f0685c;
+  --danger-bg: #2c1614;
+
+  --focus-ring: oklch(0.75 0.12 240 / 0.4);
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+
+:root {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Nominal — elemen paling menonjol. tnum supaya Rp2.000 dan Rp5.000.000
+     sejajar di kolom kanan tanpa perlu ganti ukuran. */
+  --amount-xl-size: 40px;
+  --amount-xl-line: 44px;
+  --amount-xl-weight: 600;
+  --amount-xl-tracking: -0.02em;
+  --amount-lg-size: 28px;
+  --amount-lg-line: 32px;
+  --amount-lg-weight: 600;
+  --amount-lg-tracking: -0.015em;
+  --amount-md-size: 17px;
+  --amount-md-line: 24px;
+  --amount-md-weight: 600;
+  --amount-md-tracking: -0.01em;
+  --amount-sm-size: 15px;
+  --amount-sm-line: 20px;
+  --amount-sm-weight: 500;
+  --amount-sm-tracking: 0;
+  --amount-features: "tnum" 1, "lnum" 1;
+  --amount-prefix-scale: 0.55;
+
+  --text-title-size: 20px;
+  --text-title-line: 26px;
+  --text-title-weight: 600;
+  --text-title-tracking: -0.01em;
+  --text-body-size: 15px;
+  --text-body-line: 22px;
+  --text-body-weight: 400;
+  --text-label-size: 13px;
+  --text-label-line: 18px;
+  --text-label-weight: 500;
+  --text-caption-size: 12px;
+  --text-caption-line: 16px;
+  --text-caption-weight: 400;
+  --text-overline-size: 11px;
+  --text-overline-line: 14px;
+  --text-overline-weight: 500;
+  --text-overline-tracking: 0.06em;
+
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  --touch-min: 44px;
+  --control-h: 48px;
+  --control-h-sm: 36px;
+  --chip-h: 40px;
+
+  --page-x: 16px;
+  --card-x: 18px;
+  --card-y: 18px;
+  --card-gap: 12px;
+  --section-gap: 28px;
+
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-pressed: var(--surface-pressed);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-inverse: var(--ink-inverse);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-income: var(--income);
+  --color-income-bg: var(--income-bg);
+  --color-expense: var(--expense);
+  --color-warning: var(--warning);
+  --color-warning-fg: var(--warning-fg);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --text-amount-xl: var(--amount-xl-size);
+  --text-amount-xl--line-height: var(--amount-xl-line);
+  --text-amount-xl--letter-spacing: var(--amount-xl-tracking);
+  --text-amount-xl--font-weight: var(--amount-xl-weight);
+  --text-amount-lg: var(--amount-lg-size);
+  --text-amount-lg--line-height: var(--amount-lg-line);
+  --text-amount-lg--letter-spacing: var(--amount-lg-tracking);
+  --text-amount-lg--font-weight: var(--amount-lg-weight);
+  --text-amount-md: var(--amount-md-size);
+  --text-amount-md--line-height: var(--amount-md-line);
+  --text-amount-md--font-weight: var(--amount-md-weight);
+  --text-amount-sm: var(--amount-sm-size);
+  --text-amount-sm--line-height: var(--amount-sm-line);
+  --text-amount-sm--font-weight: var(--amount-sm-weight);
+  --text-title: var(--text-title-size);
+  --text-title--line-height: var(--text-title-line);
+  --text-title--font-weight: var(--text-title-weight);
+  --text-body: var(--text-body-size);
+  --text-body--line-height: var(--text-body-line);
+  --text-label: var(--text-label-size);
+  --text-label--line-height: var(--text-label-line);
+  --text-label--font-weight: var(--text-label-weight);
+  --text-caption: var(--text-caption-size);
+  --text-caption--line-height: var(--text-caption-line);
+  --text-overline: var(--text-overline-size);
+  --text-overline--line-height: var(--text-overline-line);
+  --text-overline--letter-spacing: var(--text-overline-tracking);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@utility tnum {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+html {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--border-strong);
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
 }
