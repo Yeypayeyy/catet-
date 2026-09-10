@@ -65,7 +65,7 @@ class KirimWorker(context: Context, params: WorkerParameters) : Worker(context, 
                 }
                 is Hasil.Gagal -> {
                     gagal++
-                    outbox.catatGagal(item.id, hasil.pesan)
+                    outbox.catatGagal(item.id, hasil.pesan, hasil.hitung)
                     Log.w(TAG, "gagal uuid=${item.clientUuid.take(8)}: ${hasil.pesan}")
                 }
             }
@@ -80,7 +80,8 @@ class KirimWorker(context: Context, params: WorkerParameters) : Worker(context, 
 
     private sealed interface Hasil {
         data class Berhasil(val body: String) : Hasil
-        data class Gagal(val pesan: String) : Hasil
+        /** `hitung` false = gangguan jaringan, bukan salah payloadnya. */
+        data class Gagal(val pesan: String, val hitung: Boolean) : Hasil
     }
 
     private fun kirim(metode: String, url: String, token: String, payload: String): Hasil {
@@ -96,10 +97,12 @@ class KirimWorker(context: Context, params: WorkerParameters) : Worker(context, 
                 // Parse gagal pun dijawab 200 oleh server: payloadnya sudah aman
                 // tersimpan di sana, jadi device tidak perlu mencoba lagi.
                 if (response.isSuccessful) Hasil.Berhasil(response.body?.string().orEmpty())
-                else Hasil.Gagal("HTTP ${response.code}")
+                // Server menjawab dan menolak: itu baru layak dihitung.
+                else Hasil.Gagal("HTTP ${response.code}", hitung = true)
             }
         } catch (e: Exception) {
-            Hasil.Gagal(e.message ?: e.javaClass.simpleName)
+            // Tidak sampai ke server sama sekali. Coba lagi nanti tanpa denda.
+            Hasil.Gagal(e.message ?: e.javaClass.simpleName, hitung = false)
         }
     }
 

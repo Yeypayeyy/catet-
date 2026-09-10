@@ -8,6 +8,18 @@ import { parseMybca } from "./mybca.ts";
 const REAL_SAMPLES: { body: string; amount: bigint; direction: "debit" | "credit" }[] = [
   // 4 Sep 2026, QRIS. title notifikasi: "Catatan Finansial".
   { body: "Pengeluaran sebesar IDR 10,000.00 di kategori Belanja.", amount: 10000n, direction: "debit" },
+  // 7-10 Sep 2026, terkumpul di outbox HP selama server mati tiga hari.
+  // Yang penting di sini bukan nominalnya, tapi kategori banknya: ternyata
+  // bisa lebih dari satu kata, dan jenisnya lebih banyak dari dugaan awal.
+  { body: "Pengeluaran sebesar IDR 63,177.00 di kategori Belanja.", amount: 63177n, direction: "debit" },
+  { body: "Pengeluaran sebesar IDR 91,399.00 di kategori Belanja.", amount: 91399n, direction: "debit" },
+  { body: "Pengeluaran sebesar IDR 8,000.00 di kategori Belanja Bulanan.", amount: 8000n, direction: "debit" },
+  { body: "Pengeluaran sebesar IDR 8,500.00 di kategori Pengeluaran Bisnis.", amount: 8500n, direction: "debit" },
+  { body: "Pengeluaran sebesar IDR 10,000.00 di kategori Pembayaran.", amount: 10000n, direction: "debit" },
+  { body: "Pengeluaran sebesar IDR 2,000.00 di kategori Pembayaran.", amount: 2000n, direction: "debit" },
+  { body: "Pengeluaran sebesar IDR 20,000.00 di kategori Makanan.", amount: 20000n, direction: "debit" },
+  { body: "Pengeluaran sebesar IDR 23,500.00 di kategori Belanja Bulanan.", amount: 23500n, direction: "debit" },
+  { body: "Pengeluaran sebesar IDR 16,000.00 di kategori Makanan.", amount: 16000n, direction: "debit" },
 ];
 
 describe("parseMybca — format normal", () => {

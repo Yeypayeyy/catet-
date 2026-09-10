@@ -44,6 +44,12 @@ class Outbox(context: Context) : SQLiteOpenHelper(context, NAMA, null, VERSI) {
             db.execSQL("ALTER TABLE outbox ADD COLUMN metode TEXT NOT NULL DEFAULT 'POST'")
             db.execSQL("ALTER TABLE outbox ADD COLUMN path TEXT NOT NULL DEFAULT '/api/ingest'")
         }
+        // v3: arti attempt_count berubah — sekarang cuma menghitung penolakan
+        // server, bukan kegagalan jaringan. Hitungan lama dibuat dengan aturan
+        // yang berbeda, jadi baris yang belum terkirim dimulai dari nol lagi.
+        if (dari < 3) {
+            db.execSQL("UPDATE outbox SET attempt_count = 0 WHERE sent_at IS NULL")
+        }
     }
 
     /**
@@ -152,10 +158,18 @@ class Outbox(context: Context) : SQLiteOpenHelper(context, NAMA, null, VERSI) {
      * Baris yang gagal tidak pernah dihapus. Setelah MAX_PERCOBAAN ia berhenti
      * dicoba, tapi payloadnya tetap ada untuk diperiksa — sama semangatnya
      * dengan dead letter queue di server.
+     *
+     * `hitung` false untuk kegagalan jaringan. Server yang tidak bisa dihubungi
+     * bukan salah payloadnya, dan kalau ikut dihitung, satu kali server mati
+     * berhari-hari akan menghabiskan seluruh jatah percobaan lalu memandekkan
+     * transaksi yang sebenarnya baik-baik saja. Persis itu yang terjadi 7–10
+     * Sep 2026: sepuluh transaksi asli mentok di attempt=10 dan berhenti
+     * dicoba, padahal cuma servernya yang mati.
      */
-    fun catatGagal(id: Long, pesan: String) {
+    fun catatGagal(id: Long, pesan: String, hitung: Boolean) {
+        val tambah = if (hitung) "attempt_count + 1" else "attempt_count"
         writableDatabase.execSQL(
-            "UPDATE outbox SET attempt_count = attempt_count + 1, last_error = ? WHERE id = ?",
+            "UPDATE outbox SET attempt_count = $tambah, last_error = ? WHERE id = ?",
             arrayOf(pesan.take(300), id),
         )
     }
@@ -185,7 +199,7 @@ class Outbox(context: Context) : SQLiteOpenHelper(context, NAMA, null, VERSI) {
 
     companion object {
         private const val NAMA = "outbox.db"
-        private const val VERSI = 2
+        private const val VERSI = 3
 
         /** Berhenti mencoba setelah sekian kali gagal. Barisnya tetap disimpan. */
         const val MAX_PERCOBAAN = 10
