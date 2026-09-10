@@ -3,7 +3,11 @@
 import { and, count, desc, eq, gte, inArray, isNull, lte, type SQL } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { accounts, categories, tags, transactionTags, transactions } from "@/backend/db/schema";
-import { learnCategory } from "@/backend/services/suggest-categories";
+import {
+  learnCategory,
+  pemberiSaran,
+  type SuggestedCategory,
+} from "@/backend/services/suggest-categories";
 
 export type TransactionJson = {
   id: string;
@@ -19,6 +23,8 @@ export type TransactionJson = {
   source: "notification" | "manual";
   is_reviewed: boolean;
   tag_ids: string[];
+  /** Hanya diisi kalau diminta. Dipakai antrian review untuk chip saran. */
+  suggested_categories?: SuggestedCategory[];
 };
 
 export type ListFilter = {
@@ -30,6 +36,8 @@ export type ListFilter = {
   isReviewed?: boolean;
   limit: number;
   offset: number;
+  /** Antrian review butuh tiga saran per kartu; layar lain tidak. */
+  withSuggestions?: boolean;
 };
 
 export type WriteInput = {
@@ -127,8 +135,14 @@ export async function listTransactions(userId: string, f: ListFilter) {
   const [{ total }] = await db.select({ total: count() }).from(transactions).where(filter);
 
   const tagMap = await tagsFor(rows.map((r) => r.id));
+  // Disiapkan sekali untuk seluruh halaman, bukan per baris.
+  const saran = f.withSuggestions && rows.length > 0 ? await pemberiSaran(userId) : null;
+
   return {
-    items: rows.map((r) => toJson(r, tagMap.get(r.id) ?? [])),
+    items: rows.map((r) => ({
+      ...toJson(r, tagMap.get(r.id) ?? []),
+      ...(saran ? { suggested_categories: saran(r.amount, r.occurredAt) } : null),
+    })),
     total,
     // ponytail: offset pagination. Cukup untuk daftar transaksi satu orang;
     // ganti ke keyset kalau daftarnya sudah puluhan ribu baris.

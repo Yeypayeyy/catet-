@@ -15,6 +15,8 @@ const Query = z.object({
   is_reviewed: z.enum(["true", "false"]).optional(),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   offset: z.coerce.number().int().min(0).default(0),
+  // Antrian review meminta saran kategori ikut dikirim.
+  with_suggestions: z.enum(["true", "false"]).default("false"),
 });
 
 const Body = z.object({
@@ -47,6 +49,7 @@ export async function GET(request: Request) {
       isReviewed: q.is_reviewed === undefined ? undefined : q.is_reviewed === "true",
       limit: q.limit,
       offset: q.offset,
+      withSuggestions: q.with_suggestions === "true",
     }),
   );
 }

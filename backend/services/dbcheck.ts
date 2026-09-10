@@ -12,6 +12,7 @@ import { db, sql } from "@/backend/db";
 import {
   accounts,
   categories,
+  categoryRules,
   deadLetters,
   inboxEvents,
   tags,
@@ -28,6 +29,7 @@ import {
 } from "@/backend/services/transactions";
 import { CATALOG, createOwned, listOwned, softDeleteOwned, updateOwned } from "@/backend/services/catalog";
 import { listDeadLetters, processEvent, reparseDeadLetter } from "@/backend/services/inbox";
+import { pemberiSaran } from "@/backend/services/suggest-categories";
 
 const ids: string[] = [];
 
@@ -149,6 +151,43 @@ const [sisa] = await db
   .where(eq(transactions.id, tx.id));
 assert.ok(sisa.deletedAt, "barisnya masih ada, cuma ditandai deleted_at");
 
+// --- saran kategori untuk antrian review -------------------------------------
+// Antrian review meminta saran untuk seluruh halaman sekaligus. Yang dijaga di
+// sini: satu penyiapan dipakai berkali-kali dan tetap memberi jawaban berbeda
+// sesuai nominal masing-masing kartu.
+{
+  const [lain] = await db
+    .insert(categories)
+    .values({ userId: A.id, name: "Kopi" })
+    .returning({ id: categories.id });
+
+  // Aturan nominal persis: 25.000 -> Kopi.
+  await db.insert(categoryRules).values({
+    userId: A.id,
+    categoryId: lain.id,
+    amountMin: 25000n,
+    amountMax: 25000n,
+    hitCount: 9,
+  });
+
+  const saran = await pemberiSaran(A.id);
+  const untuk25rb = saran(25000n, new Date());
+  const untuk9jt = saran(9000000n, new Date());
+
+  assert.equal(untuk25rb[0]?.id, lain.id, "nominal persis menang di kartu yang cocok");
+  assert.notEqual(untuk9jt[0]?.id, lain.id, "kartu bernominal lain tidak ikut kena aturan itu");
+  assert.ok(untuk25rb.length > 0 && untuk9jt.length > 0, "selalu ada saran, walau dari fallback");
+
+  const kosong = await pemberiSaran(B.id);
+  assert.equal(
+    kosong(25000n, new Date()).some((s) => s.id === lain.id),
+    false,
+    "aturan milik A tidak bocor ke B",
+  );
+
+  await db.delete(categoryRules).where(eq(categoryRules.userId, A.id));
+}
+
 // --- dead letter queue ------------------------------------------------------
 const NGACO = "Notifikasi promo, bukan transaksi sama sekali.";
 const [ev] = await db
@@ -224,6 +263,7 @@ if (txIds.length) {
   await db.delete(transactionTags).where(inArray(transactionTags.transactionId, txIds));
   await db.delete(transactions).where(inArray(transactions.id, txIds));
 }
+await db.delete(categoryRules).where(inArray(categoryRules.userId, ids));
 await db.delete(deadLetters).where(inArray(deadLetters.userId, ids));
 await db.delete(inboxEvents).where(inArray(inboxEvents.userId, ids));
 await db.delete(tags).where(inArray(tags.userId, ids));

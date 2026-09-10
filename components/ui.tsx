@@ -503,3 +503,129 @@ export function WarningBanner({
     </div>
   );
 }
+
+/* ---------- Kepala layar ---------- */
+
+/** Baris atas tiap layar: keterangan kecil, judul, dan satu angka di kanan. */
+export function ScreenHeader({
+  meta,
+  title,
+  right,
+}: {
+  meta?: string;
+  title: string;
+  right?: ReactNode;
+}) {
+  return (
+    <header
+      style={{
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "space-between",
+        gap: "var(--space-4)",
+        padding: "var(--space-6) var(--page-x) var(--space-4)",
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        {meta ? (
+          <div
+            style={{
+              fontSize: "var(--text-overline-size)",
+              lineHeight: "var(--text-overline-line)",
+              letterSpacing: "var(--text-overline-tracking)",
+              textTransform: "uppercase",
+              color: "var(--ink-3)",
+              fontWeight: 500,
+            }}
+          >
+            {meta}
+          </div>
+        ) : null}
+        <h1
+          style={{
+            margin: 0,
+            fontSize: "var(--text-title-size)",
+            lineHeight: "var(--text-title-line)",
+            letterSpacing: "var(--text-title-tracking)",
+            fontWeight: 600,
+          }}
+        >
+          {title}
+        </h1>
+      </div>
+      {right}
+    </header>
+  );
+}
+
+/* ---------- Sheet ---------- */
+
+/** Panel dari bawah. Dipakai saat tiga saran tidak cukup dan user butuh daftar penuh. */
+export function Sheet({
+  open,
+  title,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "var(--overlay)",
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        zIndex: 50,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: 480,
+          maxHeight: "80vh",
+          overflowY: "auto",
+          background: "var(--surface)",
+          borderTopLeftRadius: "var(--radius-lg)",
+          borderTopRightRadius: "var(--radius-lg)",
+          borderTop: "1px solid var(--border)",
+          padding: "var(--space-5) var(--page-x) var(--space-8)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          <span style={{ fontSize: "var(--text-title-size)", fontWeight: 600 }}>{title}</span>
+          <button
+            type="button"
+            aria-label="Tutup"
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: 0,
+              color: "var(--ink-3)",
+              cursor: "pointer",
+              padding: "var(--space-1)",
+            }}
+          >
+            <Icon name="silang" size={20} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}

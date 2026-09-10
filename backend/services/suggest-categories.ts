@@ -31,12 +31,18 @@ async function frequentCategories(userId: string): Promise<SuggestedCategory[]> 
   return rows.map(({ id, name }) => ({ id, name }));
 }
 
-/** Selalu mengembalikan tepat 3 kategori — kecuali user memang punya kurang dari 3. */
-export async function suggestCategories(
+/**
+ * Menyiapkan pemberi saran sekali, lalu memakainya berkali-kali.
+ *
+ * Antrian review butuh saran untuk setiap transaksi di halaman. Kalau tiap
+ * transaksi memanggil query sendiri, satu halaman berisi 20 kartu jadi 60
+ * query. Aturan, nama kategori, dan daftar fallback tidak berubah di antara
+ * kartu — jadi diambil sekali di sini, dan pencocokannya (`rankRules`) murni
+ * di memori.
+ */
+export async function pemberiSaran(
   userId: string,
-  amount: bigint,
-  occurredAt: Date,
-): Promise<SuggestedCategory[]> {
+): Promise<(amount: bigint, occurredAt: Date) => SuggestedCategory[]> {
   // ponytail: seluruh rule milik user ditarik lalu dicocokkan di memori. Aturan
   // ini per-user dan tumbuh pelan (satu per nominal unik). Pindahkan ke WHERE
   // di SQL kalau satu user sudah ribuan rule.
@@ -53,8 +59,6 @@ export async function suggestCategories(
     .from(categoryRules)
     .where(and(eq(categoryRules.userId, userId), isNull(categoryRules.deletedAt)));
 
-  const rankedIds = rankRules(rules, amount, minuteOfDayWib(occurredAt));
-
   const names = new Map(
     (
       await db
@@ -64,18 +68,29 @@ export async function suggestCategories(
     ).map((c) => [c.id, c.name]),
   );
 
-  const out: SuggestedCategory[] = [];
-  for (const id of rankedIds) {
-    const name = names.get(id);
-    if (name && out.length < 3) out.push({ id, name });
-  }
-  if (out.length < 3) {
-    for (const c of await frequentCategories(userId)) {
+  const cadangan = await frequentCategories(userId);
+
+  return (amount, occurredAt) => {
+    const out: SuggestedCategory[] = [];
+    for (const id of rankRules(rules, amount, minuteOfDayWib(occurredAt))) {
+      const name = names.get(id);
+      if (name && out.length < 3) out.push({ id, name });
+    }
+    for (const c of cadangan) {
       if (out.length >= 3) break;
       if (!out.some((s) => s.id === c.id)) out.push(c);
     }
-  }
-  return out;
+    return out;
+  };
+}
+
+/** Selalu mengembalikan tepat 3 kategori — kecuali user memang punya kurang dari 3. */
+export async function suggestCategories(
+  userId: string,
+  amount: bigint,
+  occurredAt: Date,
+): Promise<SuggestedCategory[]> {
+  return (await pemberiSaran(userId))(amount, occurredAt);
 }
 
 /**
