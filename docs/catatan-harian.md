@@ -776,6 +776,67 @@ ping enam jaman yang mengisi `last_seen_at`.
 
 ---
 
+## 10 Sep 2026 — Vercel, token asli, dan panen outbox
+
+Kembali setelah tiga hari. Dev server mati sepanjang itu, dan Tasker masih
+menembak ke IP laptop yang sudah berubah. Dugaan awal: tiga hari transaksi
+hilang.
+
+Ternyata tidak. **Outbox menyimpan sepuluh transaksi asli**, utuh, lengkap
+dengan payload mentahnya. App juga terbukti bertahan tiga hari tanpa disentuh
+dan tetap menangkap setelah HP reboot di tengah periode itu.
+
+### Cacat yang ketahuan karena kejadian sungguhan
+
+Kesepuluh baris itu berhenti dicoba di `attempt=10`:
+
+```
+DUMP #25 sent=- attempt=10 body="Pengeluaran sebesar IDR 63,177.00 …"
+```
+
+`belumTerkirim()` menyaring `attempt_count < MAX_PERCOBAAN`, jadi datanya aman
+tapi mandek — dinyalakan servernya pun tidak akan terkirim sendiri.
+
+Batas percobaan itu dimaksudkan untuk payload yang ditolak server, bukan untuk
+server yang tidak bisa dihubungi. Sekarang `attempt_count` hanya naik kalau
+server menjawab dan menolak; kegagalan koneksi cuma mencatat `last_error`.
+Outbox naik ke versi 3 yang menol-kan hitungan baris belum terkirim, karena
+arti kolomnya berubah.
+
+Tidak akan ketahuan lewat pengujian yang dirancang. Butuh server yang benar-
+benar mati berhari-hari.
+
+### Panen sampel parser
+
+Kategori bank dari notifikasi asli ternyata jauh lebih beragam dari dugaan
+awal, dan bisa lebih dari satu kata: `Belanja`, `Belanja Bulanan`,
+`Pengeluaran Bisnis`, `Pembayaran`, `Makanan`. Parser sudah menanganinya —
+polanya `(.+?)` — dan kesepuluhnya masuk `REAL_SAMPLES` sebagai test case.
+
+### Deploy
+
+Vercel: `https://catet-xi.vercel.app`. Import dari GitHub, tiga environment
+variable, auto-deploy tiap push.
+
+Login Google sempat memantulkan ke `localhost:3000` — Supabase hanya
+menghormati `redirectTo` kalau URL-nya ada di daftar **Redirect URLs**; kalau
+tidak cocok, dia diam-diam jatuh ke **Site URL**. Kodenya tidak salah, dua
+kolom di Supabase yang belum diisi.
+
+Halaman `/devices` dibuat seadanya, tanpa gaya: token webhook tidak bisa dibuat
+tanpa session, dan Android tidak bisa jalan tanpa token. Akan didandani di
+Fase 2.3.
+
+Device sekarang dua: **HP Farrel** (token lama, dipakai Tasker) dan **hp gue**
+(app Android). Dibiarkan berdampingan selama peralihan — nanti tinggal cabut
+yang lama.
+
+Sesudah app diarahkan ke Vercel dengan token asli, kesepuluh transaksi mengalir
+dalam 30 detik dan mendarat di `farrel.ag20@gmail.com`, bukan akun demo.
+**Laptop tidak lagi perlu menyala.**
+
+---
+
 ## Yang belum
 
 - **Verifikasi terakhir 3.6** — reboot sekali lagi untuk memastikan notifikasi
