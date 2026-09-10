@@ -30,6 +30,7 @@ import {
 import { CATALOG, createOwned, listOwned, softDeleteOwned, updateOwned } from "@/backend/services/catalog";
 import { listDeadLetters, processEvent, reparseDeadLetter } from "@/backend/services/inbox";
 import { pemberiSaran } from "@/backend/services/suggest-categories";
+import { batasBulan, ringkasan } from "@/backend/services/summary";
 
 const ids: string[] = [];
 
@@ -150,6 +151,56 @@ const [sisa] = await db
   .from(transactions)
   .where(eq(transactions.id, tx.id));
 assert.ok(sisa.deletedAt, "barisnya masih ada, cuma ditandai deleted_at");
+
+// --- ringkasan ----------------------------------------------------------------
+// Saldo dihitung, bukan disimpan. Yang dijaga: saldo awal ikut terhitung, arah
+// transaksi tidak terbalik, dan batas bulan memakai jam Jakarta.
+{
+  const batas = batasBulan("2026-09", new Date("2026-09-10T02:00:00Z"));
+  assert.equal(batas.awal.toISOString(), "2026-08-31T17:00:00.000Z", "1 Sep 00.00 WIB = 31 Agu 17.00 UTC");
+  assert.equal(batas.akhir.toISOString(), "2026-09-30T17:00:00.000Z", "batas atas juga WIB");
+  assert.equal(batas.label, "September");
+
+  const [dompet] = await db
+    .insert(accounts)
+    .values({ userId: A.id, name: "Dompet", kind: "cash", initBalance: 100000n })
+    .returning({ id: accounts.id });
+
+  const buat = (amount: bigint, direction: "debit" | "credit", iso: string) =>
+    db.insert(transactions).values({
+      userId: A.id,
+      accountId: dompet.id,
+      clientUuid: crypto.randomUUID(),
+      amount,
+      direction,
+      occurredAt: new Date(iso),
+      isReviewed: true,
+    });
+
+  await buat(30000n, "debit", "2026-09-05T05:00:00Z");
+  await buat(20000n, "debit", "2026-09-06T05:00:00Z");
+  await buat(500000n, "credit", "2026-09-07T05:00:00Z");
+  // Di luar bulan: tidak boleh ikut pengeluaran September, tapi TETAP mengubah saldo.
+  await buat(70000n, "debit", "2026-08-20T05:00:00Z");
+
+  const r = await ringkasan(A.id, "2026-09");
+  const dompetnya = r.accounts.find((x) => x.id === dompet.id);
+
+  assert.equal(dompetnya?.balance, "480000", "100.000 + 500.000 − 30.000 − 20.000 − 70.000");
+  assert.equal(r.month.spending, "50000", "pengeluaran September saja, tanpa yang Agustus");
+  assert.equal(r.month.income, "500000");
+
+  const belum = r.by_category.find((k) => k.id === null);
+  assert.equal(belum?.total, "50000", "yang belum dikategorikan tetap ikut dihitung");
+
+  const kosong = await ringkasan(B.id, "2026-09");
+  assert.equal(kosong.month.spending, "0", "transaksi A tidak bocor ke ringkasan B");
+  assert.equal(
+    kosong.accounts.some((x) => x.id === dompet.id),
+    false,
+    "account A tidak muncul di ringkasan B",
+  );
+}
 
 // --- saran kategori untuk antrian review -------------------------------------
 // Antrian review meminta saran untuk seluruh halaman sekaligus. Yang dijaga di

@@ -840,9 +840,9 @@ dalam 30 detik dan mendarat di `farrel.ag20@gmail.com`, bukan akun demo.
 ## Yang belum
 
 **Fase 2 — web PWA.** 2.1 (design system), 2.2 (token + komponen dasar),
-2.3 Review Queue, dan 2.4 PWA selesai. Sisanya:
+Review Queue, Ringkasan, dan PWA selesai. Navigasi bawah baru punya dua
+tujuan; yang ketiga (Transaksi) menyusul bersama layarnya. Sisanya:
 
-- **2.3 Dashboard** — ringkasan bulan berjalan, breakdown kategori
 - **2.3 Daftar transaksi** — filter periode/kategori/account, pagination
 - **2.3 Detail & edit transaksi** — termasuk input manual untuk cash
 - **2.3 Kategori & account** — CRUD

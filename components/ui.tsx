@@ -629,3 +629,81 @@ export function Sheet({
     </div>
   );
 }
+
+/* ---------- Navigasi bawah ---------- */
+
+/**
+ * Tiga tujuan, tidak lebih. Nav yang panjang memaksa memilih, dan app ini
+ * dipakai sambil berjalan.
+ *
+ * Pengaturan sengaja tidak di sini — dibuka dari Ringkasan, karena
+ * frekuensinya beda kelas dengan tiga yang lain.
+ */
+export function BottomNav({ active }: { active: "ringkasan" | "review" | "transaksi" }) {
+  // Tujuan ketiga (Transaksi) menyusul begitu layarnya ada. Menautkan ke
+  // halaman yang belum jadi lebih buruk daripada navigasi yang pendek.
+  const tujuan = [
+    { kunci: "ringkasan", href: "/", ikon: "rumah", label: "Ringkasan" },
+    { kunci: "review", href: "/review", ikon: "kotak-masuk", label: "Review" },
+  ] as const;
+
+  return (
+    <nav
+      style={{
+        position: "sticky",
+        bottom: 0,
+        display: "grid",
+        gridTemplateColumns: `repeat(${tujuan.length}, 1fr)`,
+        background: "var(--bg)",
+        borderTop: "1px solid var(--border)",
+        // Bawahnya dilebihkan untuk gesture bar Android.
+        padding: "var(--space-2) 0 var(--space-6)",
+      }}
+    >
+      {tujuan.map((t) => (
+        <a
+          key={t.kunci}
+          href={t.href}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            padding: "var(--space-1) 0",
+            textDecoration: "none",
+            color: active === t.kunci ? "var(--accent)" : "var(--ink-3)",
+          }}
+        >
+          <Icon name={t.ikon} size={24} />
+          <span style={{ fontSize: "var(--text-overline-size)", fontWeight: 500 }}>{t.label}</span>
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+/* ---------- Bar proporsi ---------- */
+
+/** Batang perbandingan antar kategori. Panjangnya relatif ke yang terbesar. */
+export function Bar({ value, max }: { value: bigint; max: bigint }) {
+  const persen = max > 0n ? Number((value * 1000n) / max) / 10 : 0;
+  return (
+    <div
+      style={{
+        height: 6,
+        background: "var(--surface-2)",
+        borderRadius: 3,
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          width: `${persen}%`,
+          height: "100%",
+          background: "var(--accent)",
+          borderRadius: 3,
+        }}
+      />
+    </div>
+  );
+}

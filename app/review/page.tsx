@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import { TransactionCard, type SaranKategori } from "@/components/TransactionCard";
 import {
   Amount,
+  BottomNav,
   Button,
   CategoryChip,
   EmptyState,
@@ -180,6 +181,8 @@ export default function ReviewPage() {
           </div>
         ) : null}
       </div>
+
+      <BottomNav active="review" />
 
       <Sheet open={dibuka !== null} title="Pilih kategori" onClose={() => setDibuka(null)}>
         {dibuka ? (
