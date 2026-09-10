@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Pwa } from "@/components/Pwa";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,7 +32,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       // menyusul di layar Pengaturan; sampai saat itu class-nya dipasang mati.
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <Pwa />
+      </body>
     </html>
   );
 }

@@ -839,19 +839,15 @@ dalam 30 detik dan mendarat di `farrel.ag20@gmail.com`, bukan akun demo.
 
 ## Yang belum
 
-**Fase 2 — web PWA.** 2.1 (design system) dan 2.2 (token + komponen dasar)
-selesai. Sisanya:
+**Fase 2 — web PWA.** 2.1 (design system), 2.2 (token + komponen dasar),
+2.3 Review Queue, dan 2.4 PWA selesai. Sisanya:
 
-- **2.3 Review Queue** — layar paling sering dipakai, dan 8 transaksi sedang
-  menunggu di sana. Kerjakan duluan.
 - **2.3 Dashboard** — ringkasan bulan berjalan, breakdown kategori
 - **2.3 Daftar transaksi** — filter periode/kategori/account, pagination
 - **2.3 Detail & edit transaksi** — termasuk input manual untuk cash
 - **2.3 Kategori & account** — CRUD
 - **2.3 Pengaturan** — device, status, DLQ. Halaman `/devices` yang sekarang
   masih seadanya, dilebur ke sini pakai design system.
-- **2.4 PWA** — manifest, ikon, service worker app shell, prompt install
-- Halaman `/` masih bawaan Next dan belum diganti
 
 **Fase 4 — hardening.**
 
