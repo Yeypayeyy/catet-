@@ -19,17 +19,22 @@ import android.util.Log
  * sendiri. Yang tidak redundan adalah urusan listener, dan itu ternyata rumit.
  *
  * Diukur langsung di HyperOS: sesudah reboot, listener notifikasi TIDAK pernah
- * diikat lagi oleh sistem, ditunggu tiga menit pun tidak. `requestRebind`
- * menyembuhkannya kalau dipanggil dari Activity, tapi dari broadcast boot
- * seperti di sini panggilannya tidak berpengaruh sama sekali — tidak ada
- * exception, tidak ada pesan, cuma tidak terjadi apa-apa. MIUI membatasi
- * permintaan bind dari latar belakang, dan tidak ada yang bisa dilakukan app
- * dari dalam untuk melawannya.
+ * diikat lagi. Log sistemnya terang-terangan:
+ *
+ *   AutoStartManagerServiceStubImpl: MIUILOG- Reject service :
+ *     cmp=dev.frlagee.catet/.NotifikasiListener
+ *   NotificationListeners: AutStart Unable to bind notification listener service
+ *
+ * Android sendiri sudah mencoba mengikat, MIUI yang menolak. `requestRebind`
+ * di bawah tetap dipanggil karena di HP lain memang menyembuhkan, tapi di sini
+ * percuma: sesudah penolakan itu, permintaan bind dari app tidak digubris sama
+ * sekali — bahkan dari Activity yang sedang di depan. Satu-satunya yang
+ * memulihkan adalah user mematikan lalu menyalakan kembali izin akses
+ * notifikasi.
  *
  * Jadi jalan keluarnya bukan menambah akal-akalan, melainkan membuat
- * kegagalannya kelihatan: pasang notifikasi yang mengajak buka app sekali.
- * Sekali dibuka, Activity memanggil `requestRebind` dan listener hidup lagi.
- * Di HP yang sistemnya mengikat sendiri, notifikasi itu langsung ditarik oleh
+ * kegagalannya kelihatan: pasang notifikasi yang membuka layar izin itu.
+ * Di HP yang sistemnya mengikat sendiri, notifikasi ini langsung ditarik
  * `onListenerConnected` sebelum sempat terbaca.
  *
  * Menukar kegagalan diam-diam dengan satu tap adalah harga yang murah. Yang
