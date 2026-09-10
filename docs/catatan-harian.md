@@ -839,20 +839,45 @@ dalam 30 detik dan mendarat di `farrel.ag20@gmail.com`, bukan akun demo.
 
 ## Yang belum
 
-- **Verifikasi terakhir 3.6** — reboot sekali lagi untuk memastikan notifikasi
-  pemulihan yang baru muncul dengan tujuan yang benar
-- **Fase 2** — web PWA. Halaman `/` masih bawaan Next. Mulai dari langkah 2.1,
-  minta design system ke Claude Design; token CSS-nya masuk ke `CLAUDE.md`
-  sebelum ada layar yang dikerjakan.
+**Fase 2 — web PWA.** 2.1 (design system) dan 2.2 (token + komponen dasar)
+selesai. Sisanya:
 
-**Pengingat operasional:** selama masih memakai alamat WiFi lokal
-(`192.168.18.52:3000`), laptop harus menyala agar notifikasi terkirim. Tasker
-tidak menyimpan antrian — notifikasi yang gagal terkirim hilang begitu saja.
-Deploy ke Vercel kalau mau dipakai sehari-hari.
+- **2.3 Review Queue** — layar paling sering dipakai, dan 8 transaksi sedang
+  menunggu di sana. Kerjakan duluan.
+- **2.3 Dashboard** — ringkasan bulan berjalan, breakdown kategori
+- **2.3 Daftar transaksi** — filter periode/kategori/account, pagination
+- **2.3 Detail & edit transaksi** — termasuk input manual untuk cash
+- **2.3 Kategori & account** — CRUD
+- **2.3 Pengaturan** — device, status, DLQ. Halaman `/devices` yang sekarang
+  masih seadanya, dilebur ke sini pakai design system.
+- **2.4 PWA** — manifest, ikon, service worker app shell, prompt install
+- Halaman `/` masih bawaan Next dan belum diganti
+
+**Fase 4 — hardening.**
+
+- Banner di web kalau device diam > 24 jam. **Ini yang paling mendesak**:
+  sejak Tasker pensiun, tidak ada lagi jaring pengaman kalau listener mati
+  sesudah reboot. Pondasinya sudah ada — health ping enam jaman mengisi
+  `last_seen_at`.
+- Onboarding: QR di web berisi URL + token, discan Android
+- Uji token dicabut → Android harus memberi error jelas, bukan diam
+- Uji offline 24 jam
+- Uji 72 jam dengan battery optimization aktif, HP tidak tercolok
+- Privacy policy
+
+**Utang kecil**
+
+- Verifikasi terakhir 3.6: reboot sekali lagi untuk melihat notifikasi
+  pemulihan yang tujuannya sudah diperbaiki. Mekanismenya sudah terbukti per
+  bagian, jadi ini konfirmasi visual saja.
+- Dedupe hash konten di server (PRD F3.2) — baru bagian `client_uuid` yang
+  dikerjakan. Tidak mendesak sekarang karena cuma ada satu pengirim.
 
 **Yang perlu dikumpulkan sambil jalan:** variasi notifikasi myBCA selain
-pengeluaran QRIS — transfer, pemasukan, top-up, tarik tunai, biaya admin.
-Yang gagal parse otomatis terarsip di `inbox_events` dan, setelah tiga kali
-gagal, muncul di `GET /api/dead-letters` lengkap dengan payload mentahnya.
-Jadi tidak ada yang hilang: tambahkan formatnya sebagai test case, perbaiki
-parser, lalu `pnpm reparse`.
+pengeluaran — pemasukan, transfer, top-up, tarik tunai, biaya admin. Sejauh
+ini yang pernah terlihat semuanya "Pengeluaran", dengan kategori bank
+Belanja, Belanja Bulanan, Pengeluaran Bisnis, Pembayaran, Makanan. Yang gagal
+parse terarsip di `inbox_events` dan, sesudah tiga kali gagal, muncul di
+`GET /api/dead-letters` lengkap dengan payload mentahnya. Jadi tidak ada yang
+hilang: tambahkan formatnya sebagai test case, perbaiki parser, lalu
+`pnpm reparse`.
