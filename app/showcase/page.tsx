@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 import { TransactionCard } from "@/components/TransactionCard";
-import { Amount, Button, CategoryChip, ChipRow, EmptyState, Input, WarningBanner } from "@/components/ui";
+import { Amount, Button, CategoryChip, EmptyState, Input, WarningBanner } from "@/components/ui";
 
 const SARAN = [
   { id: "1", name: "Makan & Minum" },
@@ -67,7 +67,7 @@ export default function ShowcasePage() {
       </Bagian>
 
       <Bagian judul="Chip kategori">
-        <ChipRow>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
           {SARAN.map((s) => (
             <CategoryChip
               key={s.id}
@@ -78,7 +78,7 @@ export default function ShowcasePage() {
             />
           ))}
           <CategoryChip label="Lainnya" />
-        </ChipRow>
+        </div>
       </Bagian>
 
       <Bagian judul="Input">
@@ -91,29 +91,20 @@ export default function ShowcasePage() {
 
       <Bagian judul="Kartu transaksi">
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--card-gap)" }}>
-          <TransactionCard
-            amount="63177"
-            account="myBCA"
-            time="23.38"
-            suggestions={SARAN}
-            selected={dipilih}
-            onPick={(k) => setDipilih(k.id)}
-          />
+          <TransactionCard amount="63177" meta="23.38 · Belanja" />
           <TransactionCard
             amount="35000"
-            account="myBCA"
-            time="09.12"
+            meta="09.12 · myBCA"
             category="Makan & Minum"
-            note="Indomaret"
+            title="Indomaret"
           />
           <TransactionCard
             amount="5000000"
             direction="credit"
-            account="myBCA"
-            time="Kemarin"
+            meta="Kemarin 08.00 · myBCA"
             category="Gaji"
           />
-          <TransactionCard amount="14000" account="myBCA" time="08.02" category="Pendidikan" pending />
+          <TransactionCard amount="14000" meta="08.02 · Pembayaran" pending />
         </div>
       </Bagian>
 

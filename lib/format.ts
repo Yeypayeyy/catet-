@@ -36,14 +36,18 @@ const TANGGAL = new Intl.DateTimeFormat("id-ID", {
 
 /**
  * Waktu disimpan UTC; konversi ke Asia/Jakarta cuma terjadi di sini.
- * Hari ini tampil sebagai jam, kemarin sebagai "Kemarin", selebihnya tanggal.
+ *
+ * Jamnya selalu ikut ditampilkan. "Kemarin" saja tidak cukup untuk mengenali
+ * transaksi mana yang mana — kalau sehari ada empat kali jajan, yang
+ * membedakan justru jamnya.
  */
 export function formatWaktu(iso: string, sekarang = new Date()): string {
   const t = new Date(iso);
+  const jam = WAKTU.format(t);
   const hari = (d: Date) => TANGGAL.format(d);
   const kemarin = new Date(sekarang.getTime() - 24 * 60 * 60 * 1000);
 
-  if (hari(t) === hari(sekarang)) return WAKTU.format(t).replace(".", ".");
-  if (hari(t) === hari(kemarin)) return "Kemarin";
-  return hari(t);
+  if (hari(t) === hari(sekarang)) return jam;
+  if (hari(t) === hari(kemarin)) return `Kemarin ${jam}`;
+  return `${hari(t)} ${jam}`;
 }

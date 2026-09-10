@@ -1,47 +1,44 @@
 "use client";
 
 import { useState } from "react";
-import { Amount, CategoryChip, ChipRow } from "@/components/ui";
+import { Amount, Button } from "@/components/ui";
 
 export type SaranKategori = { id: string; name: string };
 
 /**
  * Kartu transaksi, dua wajah:
  *
- * - **review** (kategori masih kosong) — nominal besar di atas, tiga chip saran
- *   di bawah. Ini bentuk yang paling sering dilihat, karena antrian review
- *   adalah layar yang paling sering dibuka.
+ * - **review** (kategori masih kosong) — nominal besar, waktu dan asalnya di
+ *   bawahnya, lalu satu tombol "Kategori" yang membuka pilihan.
  * - **selesai** (sudah berkategori) — satu baris ringkas, nominal di kanan.
+ *
+ * Mode review dulu memasang tiga chip saran langsung di kartu. Diganti karena
+ * di layar HP chip ketiga selalu terpotong, dan karena mengetik catatan
+ * ("Indomaret") tidak mungkin dilakukan dari sebuah chip. Sarannya tidak
+ * hilang — pindah ke urutan teratas di dalam popup.
  */
 export function TransactionCard({
   amount,
   direction = "debit",
-  note,
-  account,
-  time,
+  title,
+  meta,
   category,
-  suggestions = [],
-  onPick,
-  onMore,
-  selected,
+  onOpen,
   pending = false,
   onClick,
 }: {
   amount: bigint | number | string;
   direction?: "debit" | "credit";
-  note?: string | null;
-  account?: string | null;
-  time?: string | null;
+  /** Catatan yang diketik user, mis. "Indomaret". Jadi judul kartu. */
+  title?: string | null;
+  /** Baris kecil: waktu, lalu asal transaksinya. */
+  meta?: string | null;
   category?: string | null;
-  suggestions?: SaranKategori[];
-  onPick?: (kategori: SaranKategori) => void;
-  onMore?: () => void;
-  selected?: string | null;
+  onOpen?: () => void;
   pending?: boolean;
   onClick?: () => void;
 }) {
   const [ditekan, setDitekan] = useState(false);
-  const meta = [account, time].filter(Boolean).join(" · ");
 
   const kartu = {
     background: ditekan && onClick ? "var(--surface-2)" : "var(--surface)",
@@ -49,10 +46,28 @@ export function TransactionCard({
     borderRadius: "var(--radius-lg)",
     padding: "var(--card-y) var(--card-x)",
     color: "var(--ink)",
-    // Sedang dikirim ke server: diredupkan, bukan dihilangkan. Kalau gagal,
-    // kartunya harus masih ada di tempatnya.
+    // Sedang dikirim: diredupkan, bukan dihilangkan. Kalau gagal, kartunya
+    // harus masih ada di tempatnya.
     opacity: pending ? 0.6 : 1,
     transition: "background var(--duration-fast) var(--ease-out), opacity var(--duration-base)",
+  };
+
+  const barisJudul = {
+    fontSize: "var(--text-body-size)",
+    lineHeight: "var(--text-body-line)",
+    fontWeight: 500,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap" as const,
+  };
+
+  const barisMeta = {
+    fontSize: "var(--text-caption-size)",
+    lineHeight: "var(--text-caption-line)",
+    color: "var(--ink-3)",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap" as const,
   };
 
   if (category) {
@@ -72,30 +87,10 @@ export function TransactionCard({
         }}
       >
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
-          <div
-            style={{
-              fontSize: "var(--text-body-size)",
-              lineHeight: "var(--text-body-line)",
-              fontWeight: 500,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {note || category}
-          </div>
-          <div
-            style={{
-              fontSize: "var(--text-caption-size)",
-              lineHeight: "var(--text-caption-line)",
-              color: "var(--ink-3)",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {note ? category : null}
-            {note && meta ? " · " : ""}
+          <div style={barisJudul}>{title || category}</div>
+          <div style={barisMeta}>
+            {title ? category : null}
+            {title && meta ? " · " : ""}
             {meta}
           </div>
         </div>
@@ -106,51 +101,16 @@ export function TransactionCard({
 
   return (
     <div style={{ ...kartu, display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          gap: "var(--space-3)",
-        }}
-      >
+      {/* Nominal dan meta ditumpuk, bukan disandingkan. Di layar 360px
+          keduanya berebut baris yang sama dan metanya kepotong. */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+        {title ? <div style={barisJudul}>{title}</div> : null}
         <Amount value={amount} direction={direction} size="lg" />
-        <span
-          style={{
-            fontSize: "var(--text-caption-size)",
-            lineHeight: "var(--text-caption-line)",
-            color: "var(--ink-3)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {meta}
-        </span>
+        {meta ? <div style={barisMeta}>{meta}</div> : null}
       </div>
-      {note ? (
-        <div
-          style={{
-            fontSize: "var(--text-body-size)",
-            lineHeight: "var(--text-body-line)",
-            color: "var(--ink-2)",
-            marginTop: -8,
-          }}
-        >
-          {note}
-        </div>
-      ) : null}
-      {/* Chip menggulir sampai tepi kartu, bukan berhenti di padding-nya. */}
-      <ChipRow style={{ margin: "0 calc(-1 * var(--card-x))", padding: "0 var(--card-x)" }}>
-        {suggestions.map((s) => (
-          <CategoryChip
-            key={s.id}
-            label={s.name}
-            suggested
-            selected={selected === s.id}
-            onSelect={() => onPick?.(s)}
-          />
-        ))}
-        <CategoryChip label="Lainnya" onSelect={onMore} />
-      </ChipRow>
+      <Button variant="secondary" full onClick={onOpen} disabled={pending}>
+        Kategori
+      </Button>
     </div>
   );
 }

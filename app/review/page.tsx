@@ -2,9 +2,9 @@
 
 // Antrian review — layar yang paling sering dibuka.
 //
-// Satu tap pada chip = PATCH ke server, kartu memudar, selesai. Semua yang
-// lain di halaman ini tunduk pada itu: tidak ada konfirmasi, tidak ada dialog,
-// tidak ada langkah kedua.
+// Alurnya: satu tombol "Kategori" per kartu, lalu popup berisi pilihan
+// kategori dan kolom catatan. Catatan yang diketik jadi judul kartunya
+// ("Indomaret"), karena myBCA tidak pernah mengirim nama merchant.
 
 import { useCallback, useEffect, useState } from "react";
 import { TransactionCard, type SaranKategori } from "@/components/TransactionCard";
@@ -13,6 +13,7 @@ import {
   Button,
   CategoryChip,
   EmptyState,
+  Input,
   ScreenHeader,
   Sheet,
   WarningBanner,
@@ -36,9 +37,14 @@ export default function ReviewPage() {
   const [antrian, setAntrian] = useState<Transaksi[] | null>(null);
   const [kategori, setKategori] = useState<Kategori[]>([]);
   const [memudar, setMemudar] = useState<Record<string, true>>({});
-  const [sheetUntuk, setSheetUntuk] = useState<string | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [belumLogin, setBelumLogin] = useState(false);
+
+  // Isi popup: transaksi yang sedang dikerjakan, pilihan, dan catatannya.
+  const [dibuka, setDibuka] = useState<Transaksi | null>(null);
+  const [dipilih, setDipilih] = useState<string | null>(null);
+  const [catatan, setCatatan] = useState("");
+  const [menyimpan, setMenyimpan] = useState(false);
 
   const muat = useCallback(async () => {
     const r = await fetch("/api/transactions?is_reviewed=false&with_suggestions=true&limit=50");
@@ -50,7 +56,6 @@ export default function ReviewPage() {
     const data = await r.json();
     setAntrian(data.items ?? []);
 
-    // Dipakai isi sheet "Lainnya". Diambil sekali, tidak per kartu.
     const rc = await fetch("/api/categories");
     if (rc.ok) setKategori((await rc.json()).items ?? []);
   }, []);
@@ -60,37 +65,48 @@ export default function ReviewPage() {
     void muat();
   }, [muat]);
 
-  async function pilih(transaksi: Transaksi, kategoriId: string) {
+  function buka(t: Transaksi) {
+    setDibuka(t);
+    setDipilih(null);
+    setCatatan(t.note ?? t.merchant ?? "");
     setGalat(null);
-    // Kartu memudar duluan supaya terasa langsung. Kalau servernya menolak,
-    // kartunya dikembalikan — lebih baik terlihat gagal daripada terlihat
-    // selesai padahal tidak tercatat.
-    setMemudar((m) => ({ ...m, [transaksi.id]: true }));
+  }
 
-    const r = await fetch(`/api/transactions/${transaksi.id}`, {
+  async function simpan() {
+    if (!dibuka || !dipilih || menyimpan) return;
+    const t = dibuka;
+    setMenyimpan(true);
+
+    const r = await fetch(`/api/transactions/${t.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ category_id: kategoriId }),
+      body: JSON.stringify({
+        category_id: dipilih,
+        // Kosong berarti tidak diisi, bukan "hapus catatan yang sudah ada".
+        ...(catatan.trim() ? { note: catatan.trim() } : null),
+      }),
     });
 
+    setMenyimpan(false);
+
     if (!r.ok) {
-      setMemudar((m) => {
-        const sisa = { ...m };
-        delete sisa[transaksi.id];
-        return sisa;
-      });
       const data = await r.json().catch(() => null);
-      setGalat(data?.error?.message ?? "Gagal menyimpan kategori. Coba lagi.");
+      setGalat(data?.error?.message ?? "Gagal menyimpan. Coba lagi.");
       return;
     }
 
-    setTimeout(() => {
-      setAntrian((xs) => (xs ?? []).filter((x) => x.id !== transaksi.id));
-    }, 320);
+    // Baru ditutup dan dihilangkan sesudah server benar-benar menerima.
+    setDibuka(null);
+    setMemudar((m) => ({ ...m, [t.id]: true }));
+    setTimeout(() => setAntrian((xs) => (xs ?? []).filter((x) => x.id !== t.id)), 320);
   }
 
   const sisa = (antrian ?? []).filter((t) => !memudar[t.id]);
   const total = sisa.reduce((a, t) => a + BigInt(t.amount), 0n);
+
+  // Saran ditaruh paling atas, sisanya menyusul tanpa diulang.
+  const saran = dibuka?.suggested_categories ?? [];
+  const lainnya = kategori.filter((c) => !saran.some((s) => s.id === c.id));
 
   return (
     <div style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
@@ -107,9 +123,13 @@ export default function ReviewPage() {
           flexDirection: "column",
           gap: "var(--card-gap)",
           padding: "var(--space-2) var(--page-x) var(--space-12)",
+          // Di layar lebar tetap satu kolom sempit: app ini dirancang untuk HP.
+          width: "100%",
+          maxWidth: 480,
+          marginInline: "auto",
         }}
       >
-        {galat ? <WarningBanner tone="danger" title={galat} /> : null}
+        {galat && !dibuka ? <WarningBanner tone="danger" title={galat} /> : null}
 
         {belumLogin ? (
           <EmptyState
@@ -142,12 +162,9 @@ export default function ReviewPage() {
             <TransactionCard
               amount={t.amount}
               direction={t.direction}
-              note={t.merchant ?? t.note}
-              account={t.bank_category}
-              time={formatWaktu(t.occurred_at)}
-              suggestions={t.suggested_categories ?? []}
-              onPick={(k) => pilih(t, k.id)}
-              onMore={() => setSheetUntuk(t.id)}
+              title={t.note ?? t.merchant}
+              meta={[formatWaktu(t.occurred_at), t.bank_category].filter(Boolean).join(" · ")}
+              onOpen={() => buka(t)}
               pending={Boolean(memudar[t.id])}
             />
           </div>
@@ -164,21 +181,94 @@ export default function ReviewPage() {
         ) : null}
       </div>
 
-      <Sheet open={sheetUntuk !== null} title="Pilih kategori" onClose={() => setSheetUntuk(null)}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
-          {kategori.map((c) => (
-            <CategoryChip
-              key={c.id}
-              label={c.name}
-              onSelect={() => {
-                const t = (antrian ?? []).find((x) => x.id === sheetUntuk);
-                setSheetUntuk(null);
-                if (t) void pilih(t, c.id);
-              }}
+      <Sheet open={dibuka !== null} title="Pilih kategori" onClose={() => setDibuka(null)}>
+        {dibuka ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+            {/* Nominal ikut ditampilkan supaya jelas transaksi mana yang
+                sedang dikerjakan — popupnya menutupi kartunya. */}
+            <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-3)" }}>
+              <Amount value={dibuka.amount} direction={dibuka.direction} size="lg" />
+              <span
+                style={{
+                  fontSize: "var(--text-caption-size)",
+                  color: "var(--ink-3)",
+                  minWidth: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {formatWaktu(dibuka.occurred_at)}
+                {dibuka.bank_category ? ` · ${dibuka.bank_category}` : ""}
+              </span>
+            </div>
+
+            {galat ? <WarningBanner tone="danger" title={galat} /> : null}
+
+            {saran.length ? (
+              <Seksi judul="Saran">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
+                  {saran.map((c) => (
+                    <CategoryChip
+                      key={c.id}
+                      label={c.name}
+                      suggested
+                      selected={dipilih === c.id}
+                      onSelect={() => setDipilih(c.id)}
+                    />
+                  ))}
+                </div>
+              </Seksi>
+            ) : null}
+
+            <Seksi judul="Semua kategori">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
+                {lainnya.map((c) => (
+                  <CategoryChip
+                    key={c.id}
+                    label={c.name}
+                    selected={dipilih === c.id}
+                    onSelect={() => setDipilih(c.id)}
+                  />
+                ))}
+              </div>
+            </Seksi>
+
+            <Input
+              label="Catatan"
+              placeholder="Indomaret"
+              hint="Muncul sebagai judul transaksi."
+              value={catatan}
+              onChange={setCatatan}
             />
-          ))}
-        </div>
+
+            <Button full onClick={simpan} disabled={!dipilih || menyimpan}>
+              {menyimpan ? "Menyimpan…" : "Simpan"}
+            </Button>
+          </div>
+        ) : null}
       </Sheet>
     </div>
+  );
+}
+
+function Seksi({ judul, children }: { judul: string; children: React.ReactNode }) {
+  return (
+    <section style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+      <h3
+        style={{
+          margin: 0,
+          fontSize: "var(--text-overline-size)",
+          lineHeight: "var(--text-overline-line)",
+          letterSpacing: "var(--text-overline-tracking)",
+          textTransform: "uppercase",
+          color: "var(--ink-3)",
+          fontWeight: 500,
+        }}
+      >
+        {judul}
+      </h3>
+      {children}
+    </section>
   );
 }
