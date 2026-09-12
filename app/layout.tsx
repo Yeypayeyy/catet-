@@ -29,9 +29,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="id"
       // Dark-first: app ini hampir selalu dibuka di HP yang gelap. Togglenya
-      // menyusul di layar Pengaturan; sampai saat itu class-nya dipasang mati.
+      // ada di layar Pengaturan; pilihan "terang" dilepas oleh skrip di bawah
+      // sebelum halaman digambar, supaya tidak ada kedipan gelap dulu.
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.tema==="terang")document.documentElement.classList.remove("dark")}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="min-h-full">
         {children}
         <Pwa />

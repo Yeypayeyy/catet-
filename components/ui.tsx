@@ -341,6 +341,127 @@ export function Input({
   );
 }
 
+/* ---------- Select ---------- */
+
+/**
+ * Pemilih bawaan browser, digayakan seperti Input. Bukan dropdown buatan
+ * sendiri: di HP yang bawaan justru lebih enak dipakai dan tidak perlu dirawat.
+ */
+export function Select({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label?: string;
+  value: string;
+  onChange: (nilai: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  const [fokus, setFokus] = useState(false);
+  const id = useId();
+
+  return (
+    <label htmlFor={id} style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
+      {label ? (
+        <span
+          style={{
+            fontSize: "var(--text-label-size)",
+            lineHeight: "var(--text-label-line)",
+            fontWeight: 500,
+            color: "var(--ink-2)",
+          }}
+        >
+          {label}
+        </span>
+      ) : null}
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => setFokus(true)}
+        onBlur={() => setFokus(false)}
+        style={{
+          height: "var(--control-h)",
+          padding: "0 var(--space-4)",
+          background: "var(--surface-2)",
+          color: "var(--ink)",
+          border: `1px solid ${fokus ? "var(--accent)" : "var(--border)"}`,
+          borderRadius: "var(--radius-md)",
+          boxShadow: fokus ? "0 0 0 3px var(--focus-ring)" : "none",
+          fontSize: "var(--text-body-size)",
+          outline: "none",
+          appearance: "none",
+          width: "100%",
+        }}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+/* ---------- Baris daftar ---------- */
+
+/** Satu baris dalam daftar pengaturan: judul, keterangan, satu aksi di kanan. */
+export function Row({
+  title,
+  description,
+  right,
+  onClick,
+}: {
+  title: ReactNode;
+  description?: ReactNode;
+  right?: ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "var(--space-3)",
+        minHeight: "var(--touch-min)",
+        padding: "var(--space-3) 0",
+        borderBottom: "1px solid var(--border)",
+        cursor: onClick ? "pointer" : "default",
+      }}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: "var(--text-body-size)",
+            lineHeight: "var(--text-body-line)",
+            fontWeight: 500,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {title}
+        </div>
+        {description ? (
+          <div
+            style={{
+              fontSize: "var(--text-caption-size)",
+              lineHeight: "var(--text-caption-line)",
+              color: "var(--ink-3)",
+            }}
+          >
+            {description}
+          </div>
+        ) : null}
+      </div>
+      {right}
+    </div>
+  );
+}
+
 /* ---------- Empty state ---------- */
 
 /** Kondisi kosong di app ini adalah kabar baik, jadi nadanya tenang. */
@@ -511,10 +632,13 @@ export function ScreenHeader({
   meta,
   title,
   right,
+  back,
 }: {
   meta?: string;
   title: string;
   right?: ReactNode;
+  /** Tujuan tombol kembali. Layar yang dibuka dari layar lain memakainya. */
+  back?: string;
 }) {
   return (
     <header
@@ -526,7 +650,25 @@ export function ScreenHeader({
         padding: "var(--space-6) var(--page-x) var(--space-4)",
       }}
     >
-      <div style={{ minWidth: 0 }}>
+      <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+        {back ? (
+          <a
+            href={back}
+            aria-label="Kembali"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 40,
+              height: 40,
+              marginLeft: "calc(var(--space-3) * -1)",
+              color: "var(--ink-2)",
+            }}
+          >
+            <Icon name="panah-kiri" size={22} />
+          </a>
+        ) : null}
+        <div style={{ minWidth: 0 }}>
         {meta ? (
           <div
             style={{
@@ -552,6 +694,7 @@ export function ScreenHeader({
         >
           {title}
         </h1>
+        </div>
       </div>
       {right}
     </header>
@@ -640,11 +783,10 @@ export function Sheet({
  * frekuensinya beda kelas dengan tiga yang lain.
  */
 export function BottomNav({ active }: { active: "ringkasan" | "review" | "transaksi" }) {
-  // Tujuan ketiga (Transaksi) menyusul begitu layarnya ada. Menautkan ke
-  // halaman yang belum jadi lebih buruk daripada navigasi yang pendek.
   const tujuan = [
     { kunci: "ringkasan", href: "/", ikon: "rumah", label: "Ringkasan" },
     { kunci: "review", href: "/review", ikon: "kotak-masuk", label: "Review" },
+    { kunci: "transaksi", href: "/transaksi", ikon: "daftar", label: "Transaksi" },
   ] as const;
 
   return (

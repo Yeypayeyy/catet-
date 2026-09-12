@@ -839,22 +839,20 @@ dalam 30 detik dan mendarat di `farrel.ag20@gmail.com`, bukan akun demo.
 
 ## Yang belum
 
-**Fase 2 — web PWA.** 2.1 (design system), 2.2 (token + komponen dasar),
-Review Queue, Ringkasan, dan PWA selesai. Navigasi bawah baru punya dua
-tujuan; yang ketiga (Transaksi) menyusul bersama layarnya. Sisanya:
+**Fase 2 — web PWA. Selesai.** Enam layarnya jadi: Review Queue, Ringkasan,
+Daftar transaksi, Detail/ubah + input manual, Kategori & Akun, Pengaturan.
+Navigasi bawah sekarang tiga tujuan; Pengaturan dibuka dari Ringkasan.
+`/devices` dilebur ke `/pengaturan` dan dihapus. Toggle tema gelap/terang
+sekaligus masuk di sana.
 
-- **2.3 Daftar transaksi** — filter periode/kategori/account, pagination
-- **2.3 Detail & edit transaksi** — termasuk input manual untuk cash
-- **2.3 Kategori & account** — CRUD
-- **2.3 Pengaturan** — device, status, DLQ. Halaman `/devices` yang sekarang
-  masih seadanya, dilebur ke sini pakai design system.
+Yang sengaja dilewat: saring daftar transaksi baru per kategori (periode dan
+akun belum), pagination masih offset "Muat lagi", dan induk kategori
+(`parent_id`) belum ada di UI — daftar kategorinya masih datar.
 
 **Fase 4 — hardening.**
 
-- Banner di web kalau device diam > 24 jam. **Ini yang paling mendesak**:
-  sejak Tasker pensiun, tidak ada lagi jaring pengaman kalau listener mati
-  sesudah reboot. Pondasinya sudah ada — health ping enam jaman mengisi
-  `last_seen_at`.
+- ~~Banner di web kalau device diam > 24 jam.~~ Ada di `/pengaturan`, dihitung
+  dari `last_seen_at` yang diisi health ping enam jaman.
 - Onboarding: QR di web berisi URL + token, discan Android
 - Uji token dicabut → Android harus memberi error jelas, bukan diam
 - Uji offline 24 jam

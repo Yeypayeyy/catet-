@@ -68,8 +68,9 @@ menyalinnya ke sini; yang di bawah cuma aturan pakainya.
   jadi tidak diwarnai. Pemasukan `+Rp…` hijau.
 - **Nominal `Rp10.000`** — tanpa spasi, tanpa desimal, ribuan titik, selalu
   tabular-nums. Satu-satunya pemformat: `formatRupiah()` di `lib/format.ts`.
-- **Dark mode via class `.dark` di `<html>`.** Sekarang dipasang mati di
-  `layout.tsx` (dark-first); togglenya menyusul di layar Pengaturan.
+- **Dark mode via class `.dark` di `<html>`.** Dipasang dark-first di
+  `layout.tsx`; togglenya di `/pengaturan`, pilihannya disimpan di
+  `localStorage.tema` dan dilepas skrip kecil sebelum halaman digambar.
 - **Radius:** kartu 20, tombol/input 14, chip bulat penuh. Kartu = `--surface`
   + garis 1px, tanpa bayangan, tanpa gradient.
 - **Sentuh:** tinggi kontrol 48 (kecil 36), chip 40, target minimum 44.

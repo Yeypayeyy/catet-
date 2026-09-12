@@ -51,3 +51,29 @@ export function formatWaktu(iso: string, sekarang = new Date()): string {
   if (hari(t) === hari(kemarin)) return `Kemarin ${jam}`;
   return `${hari(t)} ${jam}`;
 }
+
+/**
+ * ISO UTC -> nilai untuk <input type="datetime-local">.
+ *
+ * Pakai waktu lokal perangkat, bukan Asia/Jakarta yang dipakai tampilan.
+ * Input tanggal bawaan browser memang berpikir dalam waktu perangkat, dan
+ * memaksanya ke WIB cuma bikin jam yang ditulis beda dengan jam yang dipilih.
+ */
+export function toInputLocal(iso: string): string {
+  const t = new Date(iso);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}T${p(t.getHours())}:${p(t.getMinutes())}`;
+}
+
+/** Kebalikannya: nilai input -> ISO dengan offset, seperti yang diminta API. */
+export function fromInputLocal(nilai: string): string {
+  return new Date(nilai).toISOString();
+}
+
+/**
+ * Ketikan nominal -> digit satuan minor. "Rp10.000" dan "10000" sama saja.
+ * Nol di depan dibuang supaya "0100" tidak lolos sebagai nominal.
+ */
+export function hanyaDigit(teks: string): string {
+  return teks.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+}

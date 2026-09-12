@@ -6,6 +6,8 @@
 // berapa sisa uangku, ada yang perlu dirapikan tidak, ke mana perginya.
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { TransactionCard } from "@/components/TransactionCard";
 import { Amount, Bar, BottomNav, Button, EmptyState } from "@/components/ui";
@@ -31,6 +33,7 @@ type Transaksi = {
 };
 
 export default function RingkasanPage() {
+  const router = useRouter();
   const [data, setData] = useState<Ringkasan | null>(null);
   const [terakhir, setTerakhir] = useState<Transaksi[]>([]);
   const [kategoriNama, setKategoriNama] = useState<Record<string, string>>({});
@@ -87,6 +90,13 @@ export default function RingkasanPage() {
     <div style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
       <div style={{ flex: 1, width: "100%", maxWidth: 480, marginInline: "auto" }}>
         <header style={{ padding: "var(--space-6) var(--page-x) var(--space-3)" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: -8 }}>
+            {/* Pengaturan masuk lewat sini, bukan lewat nav bawah: dibuka
+                sekali seminggu, bukan tiap hari. */}
+            <a href="/pengaturan" aria-label="Pengaturan" style={{ color: "var(--ink-3)", padding: 4 }}>
+              <Icon name="pengaturan" size={22} />
+            </a>
+          </div>
           <div
             style={{
               fontSize: "var(--text-overline-size)",
@@ -260,7 +270,16 @@ export default function RingkasanPage() {
                 >
                   Terakhir
                 </span>
-                {/* "Semua" menyusul bersama layar daftar transaksi. */}
+                <Link
+                  href="/transaksi"
+                  style={{
+                    fontSize: "var(--text-label-size)",
+                    color: "var(--accent)",
+                    textDecoration: "none",
+                  }}
+                >
+                  Semua
+                </Link>
               </div>
               {terakhir.map((t) => (
                 <TransactionCard
@@ -272,6 +291,7 @@ export default function RingkasanPage() {
                   category={
                     t.category_id ? (kategoriNama[t.category_id] ?? "—") : "Belum dikategorikan"
                   }
+                  onClick={() => router.push(`/transaksi/${t.id}`)}
                 />
               ))}
             </>
