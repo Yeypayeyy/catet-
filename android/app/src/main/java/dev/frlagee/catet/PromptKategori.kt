@@ -105,7 +105,7 @@ object PromptKategori {
 
     /** Tap badan notifikasi membuka halaman detail di web. */
     private fun bukaWeb(context: Context, transactionId: String, notifId: Int): PendingIntent {
-        val url = "${Prefs.serverUrl(context)}/transactions/$transactionId"
+        val url = "${Prefs.serverUrl(context)}/transaksi/$transactionId"
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         return PendingIntent.getActivity(
             context,
