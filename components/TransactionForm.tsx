@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
+import { NoteSuggestions } from "@/components/NoteSuggestions";
 import {
   Button,
   CategoryChip,
@@ -213,6 +214,7 @@ export function TransactionForm({
         value={catatan}
         onChange={setCatatan}
       />
+      <NoteSuggestions categoryId={kategoriId} teks={catatan} onPilih={setCatatan} />
 
       <Button full onClick={simpan} disabled={sibuk}>
         {sibuk ? "Menyimpan…" : "Simpan"}

@@ -7,6 +7,8 @@
 // ("Indomaret"), karena myBCA tidak pernah mengirim nama merchant.
 
 import { useCallback, useEffect, useState } from "react";
+import { Icon } from "@/components/Icon";
+import { NoteSuggestions } from "@/components/NoteSuggestions";
 import { TransactionCard, type SaranKategori } from "@/components/TransactionCard";
 import {
   Amount,
@@ -80,6 +82,29 @@ export default function ReviewPage() {
     setGalat(null);
   }
 
+  /** Sesudah server menerima: popup ditutup, kartunya memudar lalu hilang. */
+  function singkirkan(id: string) {
+    setDibuka(null);
+    setMemudar((m) => ({ ...m, [id]: true }));
+    setTimeout(() => setAntrian((xs) => (xs ?? []).filter((x) => x.id !== id)), 320);
+  }
+
+  // Untuk transaksi yang tidak perlu dicatat: salah tangkap notifikasi,
+  // transfer ke rekening sendiri. Soft delete di server.
+  async function hapus() {
+    if (!dibuka || menyimpan) return;
+    if (!confirm("Hapus transaksi ini?")) return;
+    const t = dibuka;
+    setMenyimpan(true);
+    const r = await fetch(`/api/transactions/${t.id}`, { method: "DELETE" });
+    setMenyimpan(false);
+    if (!r.ok) {
+      setGalat("Gagal menghapus. Coba lagi.");
+      return;
+    }
+    singkirkan(t.id);
+  }
+
   async function simpan() {
     if (!dibuka || !dipilih || menyimpan) return;
     const t = dibuka;
@@ -104,9 +129,7 @@ export default function ReviewPage() {
     }
 
     // Baru ditutup dan dihilangkan sesudah server benar-benar menerima.
-    setDibuka(null);
-    setMemudar((m) => ({ ...m, [t.id]: true }));
-    setTimeout(() => setAntrian((xs) => (xs ?? []).filter((x) => x.id !== t.id)), 320);
+    singkirkan(t.id);
   }
 
   const sisa = (antrian ?? []).filter((t) => !memudar[t.id]);
@@ -193,7 +216,32 @@ export default function ReviewPage() {
 
       <BottomNav active="review" />
 
-      <Sheet open={dibuka !== null} title="Pilih kategori" onClose={() => setDibuka(null)}>
+      <Sheet
+        open={dibuka !== null}
+        title="Pilih kategori"
+        onClose={() => setDibuka(null)}
+        aksi={
+          <button
+            type="button"
+            aria-label="Hapus transaksi"
+            onClick={() => void hapus()}
+            disabled={menyimpan}
+            style={{
+              width: 44,
+              height: 44,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "transparent",
+              border: 0,
+              color: "var(--danger)",
+              cursor: "pointer",
+            }}
+          >
+            <Icon name="sampah" size={20} />
+          </button>
+        }
+      >
         {dibuka ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
             {/* Nominal ikut ditampilkan supaya jelas transaksi mana yang
@@ -247,6 +295,7 @@ export default function ReviewPage() {
               value={catatan}
               onChange={setCatatan}
             />
+            <NoteSuggestions categoryId={dipilih} teks={catatan} onPilih={setCatatan} />
 
             <Button full onClick={simpan} disabled={!dipilih || menyimpan}>
               {menyimpan ? "Menyimpan…" : "Simpan"}

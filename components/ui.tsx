@@ -806,11 +806,14 @@ export function Sheet({
   open,
   title,
   onClose,
+  aksi,
   children,
 }: {
   open: boolean;
   title: string;
   onClose: () => void;
+  /** Tombol tambahan di kepala popup, sebelum ✕. */
+  aksi?: ReactNode;
   children: ReactNode;
 }) {
   if (!open) return null;
@@ -849,7 +852,8 @@ export function Sheet({
             marginBottom: "var(--space-4)",
           }}
         >
-          <span style={{ fontSize: "var(--text-title-size)", fontWeight: 600 }}>{title}</span>
+          <span style={{ flex: 1, fontSize: "var(--text-title-size)", fontWeight: 600 }}>{title}</span>
+          {aksi}
           <button
             type="button"
             aria-label="Tutup"
