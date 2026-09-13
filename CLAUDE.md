@@ -77,7 +77,8 @@ menyalinnya ke sini; yang di bawah cuma aturan pakainya.
 - **Ikon** digambar di `components/Icon.tsx` dari path Lucide yang disalin ke
   dalam kode. Tanpa CDN, tanpa dependensi. Tambah ikon = tambah path.
 - **Bahasa UI:** kalimat pendek berisi angka ("3 transaksi menunggu
-  kategori"). Tanpa seruan, tanpa emoji, tanpa menyapa "kamu". Imperatif
+  kategori"). Tanpa seruan, tanpa emoji di kalimat (ikon kategori boleh emoji),
+  tanpa menyapa "kamu". Imperatif
   untuk aksi: Simpan, Lewati, Cek device. Kondisi kosong adalah kabar baik.
 
 Komponen dasar ada di `components/ui.tsx` dan `components/TransactionCard.tsx`.

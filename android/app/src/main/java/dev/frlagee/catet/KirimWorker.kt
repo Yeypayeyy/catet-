@@ -122,7 +122,10 @@ class KirimWorker(context: Context, params: WorkerParameters) : Worker(context, 
             val kategori = buildList {
                 for (i in 0 until (saran?.length() ?: 0)) {
                     val k = saran!!.getJSONObject(i)
-                    add(k.getString("id") to k.getString("name"))
+                    // "🍜 Makan & Minum". optString: server lama belum mengirim icon.
+                    val ikon = k.optString("icon").takeIf { it.isNotBlank() && it != "null" }
+                    val label = if (ikon != null) "$ikon ${k.getString("name")}" else k.getString("name")
+                    add(k.getString("id") to label)
                 }
             }
 

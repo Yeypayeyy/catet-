@@ -32,9 +32,9 @@ async function main() {
     .from(categories)
     .where(eq(categories.userId, user.id));
   const haveCategory = new Set(existingCategories.map((c) => c.name));
-  const newCategories = DEFAULT_CATEGORIES.filter((c) => !haveCategory.has(c));
+  const newCategories = DEFAULT_CATEGORIES.filter((c) => !haveCategory.has(c.name));
   if (newCategories.length) {
-    await db.insert(categories).values(newCategories.map((name) => ({ name, userId: user.id })));
+    await db.insert(categories).values(newCategories.map((c) => ({ ...c, userId: user.id })));
   }
 
   await db

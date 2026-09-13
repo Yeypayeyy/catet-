@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { formatRupiah, fromInputLocal, hanyaDigit, toInputLocal } from "./format.ts";
+import { formatRupiah, fromInputLocal, hanyaDigit, labelKategori, toInputLocal } from "./format.ts";
 
 describe("formatRupiah", () => {
   it("mengelompokkan ribuan tanpa desimal", () => {
@@ -24,5 +24,14 @@ describe("hanyaDigit", () => {
     assert.equal(hanyaDigit("0100"), "100");
     assert.equal(hanyaDigit("abc"), "");
     assert.equal(hanyaDigit("0"), "0");
+  });
+});
+
+describe("labelKategori", () => {
+  it("menaruh ikon di depan nama, atau nama saja kalau kosong", () => {
+    assert.equal(labelKategori({ name: "Makan & Minum", icon: "🍜" }), "🍜 Makan & Minum");
+    assert.equal(labelKategori({ name: "Ngopi", icon: null }), "Ngopi");
+    assert.equal(labelKategori({ name: "Ngopi", icon: "" }), "Ngopi");
+    assert.equal(labelKategori({ name: "Ngopi" }), "Ngopi");
   });
 });

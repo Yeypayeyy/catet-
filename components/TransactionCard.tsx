@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Amount, Button } from "@/components/ui";
 
-export type SaranKategori = { id: string; name: string };
+export type SaranKategori = { id: string; name: string; icon: string | null };
 
 /**
  * Kartu transaksi, dua wajah:

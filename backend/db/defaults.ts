@@ -7,20 +7,22 @@ export const DEFAULT_ACCOUNTS = [
   { name: "GoPay", kind: "ewallet" as const, initBalance: 0n },
 ];
 
+// Ikonnya juga diisi ke kategori lama bernama sama oleh migrasi 0004 —
+// ubah di sini, ubah juga di sana.
 export const DEFAULT_CATEGORIES = [
-  "Makan & Minum",
-  "Jajan",
-  "Belanja Harian",
-  "Transport",
-  "Bensin",
-  "Pulsa & Internet",
-  "Listrik & Air",
-  "Sewa & Kos",
-  "Kesehatan",
-  "Pendidikan",
-  "Hiburan",
-  "Olahraga",
-  "Donasi",
-  "Transfer",
-  "Gaji",
+  { name: "Makan & Minum", icon: "🍜" },
+  { name: "Jajan", icon: "🍩" },
+  { name: "Belanja Harian", icon: "🛒" },
+  { name: "Transport", icon: "🚌" },
+  { name: "Bensin", icon: "⛽" },
+  { name: "Pulsa & Internet", icon: "📶" },
+  { name: "Listrik & Air", icon: "💡" },
+  { name: "Sewa & Kos", icon: "🏠" },
+  { name: "Kesehatan", icon: "💊" },
+  { name: "Pendidikan", icon: "🎓" },
+  { name: "Hiburan", icon: "🎬" },
+  { name: "Olahraga", icon: "⚽" },
+  { name: "Donasi", icon: "🤲" },
+  { name: "Transfer", icon: "🔁" },
+  { name: "Gaji", icon: "💰" },
 ];

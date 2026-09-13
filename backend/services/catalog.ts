@@ -87,7 +87,12 @@ export async function softDeleteOwned(
 export const CATALOG = {
   categories: {
     table: categories as OwnedTable,
-    columns: { id: categories.id, name: categories.name, parentId: categories.parentId },
+    columns: {
+      id: categories.id,
+      name: categories.name,
+      icon: categories.icon,
+      parentId: categories.parentId,
+    },
     orderBy: categories.name,
   },
   accounts: {

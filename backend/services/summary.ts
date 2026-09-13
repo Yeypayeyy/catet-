@@ -15,7 +15,7 @@ export type Ringkasan = {
   balance: string;
   accounts: { id: string; name: string; balance: string }[];
   month: { key: string; label: string; spending: string; income: string; days: number };
-  by_category: { id: string | null; name: string; total: string }[];
+  by_category: { id: string | null; name: string; icon: string | null; total: string }[];
   pending_count: number;
 };
 
@@ -100,12 +100,13 @@ export async function ringkasan(userId: string, monthKey?: string): Promise<Ring
     .select({
       id: categories.id,
       name: categories.name,
+      icon: categories.icon,
       total: sql<string>`sum(${transactions.amount})`,
     })
     .from(transactions)
     .leftJoin(categories, eq(categories.id, transactions.categoryId))
     .where(and(dalamBulan, eq(transactions.direction, "debit")))
-    .groupBy(categories.id, categories.name)
+    .groupBy(categories.id, categories.name, categories.icon)
     .orderBy(desc(sql`sum(${transactions.amount})`));
 
   const [{ menunggu }] = await db
@@ -132,6 +133,7 @@ export async function ringkasan(userId: string, monthKey?: string): Promise<Ring
     by_category: perKategori.map((k) => ({
       id: k.id,
       name: k.name ?? "Belum dikategorikan",
+      icon: k.icon,
       total: BigInt(k.total).toString(),
     })),
     pending_count: Number(menunggu ?? 0),

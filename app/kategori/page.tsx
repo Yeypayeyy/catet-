@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
+import { labelKategori } from "@/lib/format";
 import {
   Amount,
   Button,
@@ -22,7 +23,7 @@ import {
   WarningBanner,
 } from "@/components/ui";
 
-type Kategori = { id: string; name: string };
+type Kategori = { id: string; name: string; icon: string | null };
 type Akun = { id: string; name: string; kind: "bank" | "cash" | "ewallet"; init_balance: string };
 
 const JENIS_AKUN = [
@@ -35,6 +36,7 @@ type Sunting = {
   jenis: "kategori" | "akun";
   id: string | null;
   nama: string;
+  ikon: string;
   kind: "bank" | "cash" | "ewallet";
   saldoAwal: string;
 };
@@ -70,6 +72,7 @@ export default function KategoriPage() {
       jenis,
       id: data?.id ?? null,
       nama: data?.name ?? "",
+      ikon: data && "icon" in data ? (data.icon ?? "") : "",
       kind: akunData?.kind ?? "bank",
       saldoAwal: akunData?.init_balance ?? "0",
     });
@@ -87,7 +90,7 @@ export default function KategoriPage() {
     const resource = sunting.jenis === "kategori" ? "categories" : "accounts";
     const body =
       sunting.jenis === "kategori"
-        ? { name: nama }
+        ? { name: nama, icon: sunting.ikon.trim() }
         : {
             name: nama,
             kind: sunting.kind,
@@ -164,7 +167,7 @@ export default function KategoriPage() {
           {(kategori ?? []).map((c) => (
             <Row
               key={c.id}
-              title={c.name}
+              title={labelKategori(c)}
               onClick={() => buka("kategori", c)}
               right={<Icon name="pensil" size={16} color="var(--ink-3)" />}
             />
@@ -200,6 +203,16 @@ export default function KategoriPage() {
         {sunting ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
             {galat ? <WarningBanner tone="danger" title={galat} /> : null}
+
+            {sunting.jenis === "kategori" ? (
+              <Input
+                label="Ikon"
+                placeholder="🍜"
+                hint="Satu emoji dari keyboard. Boleh dikosongkan."
+                value={sunting.ikon}
+                onChange={(v) => setSunting({ ...sunting, ikon: v })}
+              />
+            ) : null}
 
             <Input
               label="Nama"

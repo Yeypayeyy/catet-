@@ -46,7 +46,7 @@ export async function ensureProfile(user: SessionUser, name: string | null): Pro
   if (punyaAccount) return;
 
   await db.insert(accounts).values(DEFAULT_ACCOUNTS.map((a) => ({ ...a, userId: user.userId })));
-  await db.insert(categories).values(DEFAULT_CATEGORIES.map((n) => ({ name: n, userId: user.userId })));
+  await db.insert(categories).values(DEFAULT_CATEGORIES.map((c) => ({ ...c, userId: user.userId })));
 }
 
 /** Profil aplikasi milik session ini, atau null kalau belum pernah login. */

@@ -64,6 +64,8 @@ export const categories = pgTable("categories", {
     .notNull()
     .references(() => users.id),
   name: text("name").notNull(),
+  // Satu emoji ("🍜"), diketik user. Kosong = tampil tanpa ikon.
+  icon: text("icon"),
   parentId: uuid("parent_id").references((): AnyPgColumn => categories.id),
   ...timestamps,
 });

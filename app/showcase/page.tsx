@@ -8,12 +8,13 @@
 
 import { useEffect, useState } from "react";
 import { TransactionCard } from "@/components/TransactionCard";
+import { labelKategori } from "@/lib/format";
 import { Amount, Button, CategoryChip, EmptyState, Input, WarningBanner } from "@/components/ui";
 
 const SARAN = [
-  { id: "1", name: "Makan & Minum" },
-  { id: "2", name: "Belanja Harian" },
-  { id: "3", name: "Transport" },
+  { id: "1", name: "Makan & Minum", icon: "🍜" },
+  { id: "2", name: "Belanja Harian", icon: "🛒" },
+  { id: "3", name: "Transport", icon: null },
 ];
 
 export default function ShowcasePage() {
@@ -71,7 +72,7 @@ export default function ShowcasePage() {
           {SARAN.map((s) => (
             <CategoryChip
               key={s.id}
-              label={s.name}
+              label={labelKategori(s)}
               suggested
               selected={dipilih === s.id}
               onSelect={() => setDipilih(s.id)}

@@ -77,3 +77,11 @@ export function fromInputLocal(nilai: string): string {
 export function hanyaDigit(teks: string): string {
   return teks.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
 }
+
+/**
+ * "🍜 Makan & Minum", atau nama saja kalau ikonnya kosong. Satu-satunya tempat
+ * label kategori dirakit, supaya chip, kartu, dan statistik tidak berbeda.
+ */
+export function labelKategori(k: { name: string; icon?: string | null }): string {
+  return k.icon ? `${k.icon} ${k.name}` : k.name;
+}

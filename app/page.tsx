@@ -11,13 +11,13 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { TransactionCard } from "@/components/TransactionCard";
 import { Amount, Bar, BottomNav, Button, EmptyState } from "@/components/ui";
-import { formatWaktu } from "@/lib/format";
+import { formatWaktu, labelKategori } from "@/lib/format";
 
 type Ringkasan = {
   balance: string;
   accounts: { id: string; name: string; balance: string }[];
   month: { key: string; label: string; spending: string; income: string; days: number };
-  by_category: { id: string | null; name: string; total: string }[];
+  by_category: { id: string | null; name: string; icon: string | null; total: string }[];
   pending_count: number;
 };
 
@@ -52,8 +52,9 @@ export default function RingkasanPage() {
 
     const rc = await fetch("/api/categories");
     if (rc.ok) {
-      const items: { id: string; name: string }[] = (await rc.json()).items ?? [];
-      setKategoriNama(Object.fromEntries(items.map((c) => [c.id, c.name])));
+      const items: { id: string; name: string; icon: string | null }[] =
+        (await rc.json()).items ?? [];
+      setKategoriNama(Object.fromEntries(items.map((c) => [c.id, labelKategori(c)])));
     }
   }, []);
 
@@ -240,7 +241,7 @@ export default function RingkasanPage() {
                           color: k.id ? "var(--ink)" : "var(--ink-3)",
                         }}
                       >
-                        {k.name}
+                        {labelKategori(k)}
                       </span>
                       <Amount value={k.total} size="sm" />
                     </div>

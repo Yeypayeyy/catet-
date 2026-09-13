@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { Button, CategoryChip, EmptyState, Input, Select, WarningBanner } from "@/components/ui";
-import { formatRupiah, fromInputLocal, hanyaDigit, toInputLocal } from "@/lib/format";
+import { formatRupiah, fromInputLocal, hanyaDigit, labelKategori, toInputLocal } from "@/lib/format";
 
 export type TransaksiAwal = {
   id: string;
@@ -22,7 +22,7 @@ export type TransaksiAwal = {
 };
 
 type Akun = { id: string; name: string };
-type Kategori = { id: string; name: string };
+type Kategori = { id: string; name: string; icon: string | null };
 
 export function TransactionForm({ awal }: { awal?: TransaksiAwal }) {
   const router = useRouter();
@@ -174,7 +174,7 @@ export function TransactionForm({ awal }: { awal?: TransaksiAwal }) {
           {kategori.map((c) => (
             <CategoryChip
               key={c.id}
-              label={c.name}
+              label={labelKategori(c)}
               selected={kategoriId === c.id}
               // Ditekan lagi berarti batal memilih, bukan terkunci selamanya.
               onSelect={() => setKategoriId((s) => (s === c.id ? null : c.id))}

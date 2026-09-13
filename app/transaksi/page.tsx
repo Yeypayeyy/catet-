@@ -19,7 +19,7 @@ import {
   EmptyState,
   ScreenHeader,
 } from "@/components/ui";
-import { formatWaktu } from "@/lib/format";
+import { formatWaktu, labelKategori } from "@/lib/format";
 
 const PER_HALAMAN = 30;
 
@@ -34,7 +34,7 @@ type Transaksi = {
   category_id: string | null;
 };
 
-type Kategori = { id: string; name: string };
+type Kategori = { id: string; name: string; icon: string | null };
 
 export default function TransaksiPage() {
   const router = useRouter();
@@ -77,7 +77,7 @@ export default function TransaksiPage() {
     })();
   }, []);
 
-  const namaKategori = Object.fromEntries(kategori.map((c) => [c.id, c.name]));
+  const namaKategori = Object.fromEntries(kategori.map((c) => [c.id, labelKategori(c)]));
 
   return (
     <div style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
@@ -100,7 +100,7 @@ export default function TransaksiPage() {
             {kategori.map((c) => (
               <CategoryChip
                 key={c.id}
-                label={c.name}
+                label={labelKategori(c)}
                 selected={saring === c.id}
                 onSelect={() => setSaring(c.id)}
               />

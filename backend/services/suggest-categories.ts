@@ -8,12 +8,17 @@ import { db } from "@/backend/db";
 import { categories, categoryRules, transactions } from "@/backend/db/schema";
 import { minuteOfDayWib, rankRules } from "@/backend/services/category-rank";
 
-export type SuggestedCategory = { id: string; name: string };
+export type SuggestedCategory = { id: string; name: string; icon: string | null };
 
 /** Tiga kategori tersering milik user; dipakai kalau aturan tidak cukup. */
 async function frequentCategories(userId: string): Promise<SuggestedCategory[]> {
   const rows = await db
-    .select({ id: categories.id, name: categories.name, n: count(transactions.id) })
+    .select({
+      id: categories.id,
+      name: categories.name,
+      icon: categories.icon,
+      n: count(transactions.id),
+    })
     .from(categories)
     .leftJoin(
       transactions,
@@ -24,11 +29,11 @@ async function frequentCategories(userId: string): Promise<SuggestedCategory[]> 
       ),
     )
     .where(and(eq(categories.userId, userId), isNull(categories.deletedAt)))
-    .groupBy(categories.id, categories.name, categories.createdAt)
+    .groupBy(categories.id, categories.name, categories.icon, categories.createdAt)
     .orderBy(desc(count(transactions.id)), categories.createdAt)
     .limit(3);
 
-  return rows.map(({ id, name }) => ({ id, name }));
+  return rows.map(({ id, name, icon }) => ({ id, name, icon }));
 }
 
 /**
@@ -59,13 +64,13 @@ export async function pemberiSaran(
     .from(categoryRules)
     .where(and(eq(categoryRules.userId, userId), isNull(categoryRules.deletedAt)));
 
-  const names = new Map(
+  const byId = new Map(
     (
       await db
-        .select({ id: categories.id, name: categories.name })
+        .select({ id: categories.id, name: categories.name, icon: categories.icon })
         .from(categories)
         .where(and(eq(categories.userId, userId), isNull(categories.deletedAt)))
-    ).map((c) => [c.id, c.name]),
+    ).map((c) => [c.id, c]),
   );
 
   const cadangan = await frequentCategories(userId);
@@ -73,8 +78,8 @@ export async function pemberiSaran(
   return (amount, occurredAt) => {
     const out: SuggestedCategory[] = [];
     for (const id of rankRules(rules, amount, minuteOfDayWib(occurredAt))) {
-      const name = names.get(id);
-      if (name && out.length < 3) out.push({ id, name });
+      const c = byId.get(id);
+      if (c && out.length < 3) out.push(c);
     }
     for (const c of cadangan) {
       if (out.length >= 3) break;
