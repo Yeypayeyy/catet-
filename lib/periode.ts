@@ -39,6 +39,23 @@ export function batasBulanWib(key: string): { from: string; to: string } {
   return { from: new Date(awal).toISOString(), to: new Date(akhir - 1).toISOString() };
 }
 
+/**
+ * Periode dari query string: `?bulan=2026-09` atau `?tampilan=<perTahun>&tahun=2026`.
+ * Nilai yang tidak valid jatuh ke bulan berjalan, bukan error — URL ini
+ * diketik tangan dan dibagikan, jadi harus memaafkan.
+ */
+export function bacaPeriode(
+  sp: { get(k: string): string | null },
+  bulanIni: string,
+  nilaiPerTahun: string,
+): { bulan: string; tahun: number; perTahun: boolean } {
+  const b = sp.get("bulan");
+  const bulan = bulanValid(b) ? b : bulanIni;
+  const t = Number(sp.get("tahun"));
+  const tahun = Number.isInteger(t) && t >= 2000 && t <= 2100 ? t : Number(bulan.slice(0, 4));
+  return { bulan, tahun, perTahun: sp.get("tampilan") === nilaiPerTahun };
+}
+
 type Bernominal = { occurred_at: string; amount: string; direction: "debit" | "credit" };
 
 export function jumlahkan(items: Bernominal[]): { masuk: bigint; keluar: bigint } {

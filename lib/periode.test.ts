@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  bacaPeriode,
   batasBulanWib,
   bulanValid,
   bulanWib,
@@ -73,5 +74,30 @@ describe("kelompokkanPerHari", () => {
       jumlahkan([tx("2026-09-02T03:00:00Z", "20000", "debit"), tx("2026-09-02T01:00:00Z", "5000", "credit")]),
       { masuk: 5000n, keluar: 20000n },
     );
+  });
+});
+
+describe("bacaPeriode", () => {
+  const sp = (q: string) => new URLSearchParams(q);
+
+  it("membaca bulan dan tampilan per tahun", () => {
+    assert.deepEqual(bacaPeriode(sp("bulan=2026-03"), "2026-09", "tahunan"), {
+      bulan: "2026-03",
+      tahun: 2026,
+      perTahun: false,
+    });
+    assert.deepEqual(bacaPeriode(sp("tampilan=tahunan&tahun=2025"), "2026-09", "tahunan"), {
+      bulan: "2026-09",
+      tahun: 2025,
+      perTahun: true,
+    });
+  });
+
+  it("nilai rusak jatuh ke bulan berjalan", () => {
+    assert.deepEqual(bacaPeriode(sp("bulan=2026-99&tahun=abc"), "2026-09", "tahunan"), {
+      bulan: "2026-09",
+      tahun: 2026,
+      perTahun: false,
+    });
   });
 });

@@ -22,7 +22,8 @@ export type NamaIkon =
   | "panah-kiri"
   | "pengaturan"
   | "sampah"
-  | "pensil";
+  | "pensil"
+  | "statistik";
 
 const PATH: Record<NamaIkon, string[]> = {
   rumah: [
@@ -63,6 +64,7 @@ const PATH: Record<NamaIkon, string[]> = {
     "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
     "m15 5 4 4",
   ],
+  statistik: ["M3 3v16a2 2 0 0 0 2 2h16", "M18 17V9", "M13 17V5", "M8 17v-3"],
 };
 
 export function Icon({

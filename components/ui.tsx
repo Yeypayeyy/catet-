@@ -776,17 +776,22 @@ export function Sheet({
 /* ---------- Navigasi bawah ---------- */
 
 /**
- * Tiga tujuan, tidak lebih. Nav yang panjang memaksa memilih, dan app ini
+ * Empat tujuan, tidak lebih. Nav yang panjang memaksa memilih, dan app ini
  * dipakai sambil berjalan.
  *
  * Pengaturan sengaja tidak di sini — dibuka dari Ringkasan, karena
  * frekuensinya beda kelas dengan tiga yang lain.
  */
-export function BottomNav({ active }: { active: "ringkasan" | "review" | "transaksi" }) {
+export function BottomNav({
+  active,
+}: {
+  active: "ringkasan" | "review" | "transaksi" | "statistik";
+}) {
   const tujuan = [
     { kunci: "ringkasan", href: "/", ikon: "rumah", label: "Ringkasan" },
     { kunci: "review", href: "/review", ikon: "kotak-masuk", label: "Review" },
     { kunci: "transaksi", href: "/transaksi", ikon: "daftar", label: "Transaksi" },
+    { kunci: "statistik", href: "/statistik", ikon: "statistik", label: "Statistik" },
   ] as const;
 
   return (

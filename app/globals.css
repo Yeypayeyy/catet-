@@ -48,6 +48,18 @@
   --focus-ring: oklch(0.52 0.15 240 / 0.35);
   --overlay: rgba(17, 17, 20, 0.5);
 
+  /* Palet kategori, HANYA untuk donat Statistik dan kotak penandanya.
+     Terang sama, rona dibedakan; urutannya melompat supaya irisan yang
+     bersebelahan tidak mirip. --chart-8 = "Lainnya", sengaja netral. */
+  --chart-1: oklch(0.6 0.13 250);
+  --chart-2: oklch(0.68 0.14 55);
+  --chart-3: oklch(0.62 0.11 170);
+  --chart-4: oklch(0.58 0.13 315);
+  --chart-5: oklch(0.72 0.13 95);
+  --chart-6: oklch(0.62 0.15 15);
+  --chart-7: oklch(0.64 0.1 210);
+  --chart-8: #a1a1aa;
+
   color-scheme: light;
 }
 
@@ -83,6 +95,15 @@
 
   --focus-ring: oklch(0.75 0.12 240 / 0.4);
   --overlay: rgba(0, 0, 0, 0.6);
+
+  --chart-1: oklch(0.72 0.12 250);
+  --chart-2: oklch(0.78 0.13 55);
+  --chart-3: oklch(0.74 0.1 170);
+  --chart-4: oklch(0.7 0.12 315);
+  --chart-5: oklch(0.82 0.12 95);
+  --chart-6: oklch(0.72 0.14 15);
+  --chart-7: oklch(0.76 0.09 210);
+  --chart-8: #52525b;
 
   color-scheme: dark;
 }

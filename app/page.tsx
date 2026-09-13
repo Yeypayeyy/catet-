@@ -163,8 +163,12 @@ export default function RingkasanPage() {
             </a>
           ) : null}
 
-          <section
+          {/* Seluruh kartu jadi pintu ke Statistik bulan yang sama. */}
+          <Link
+            href={`/statistik${data ? `?bulan=${data.month.key}` : ""}`}
             style={{
+              textDecoration: "none",
+              color: "inherit",
               background: "var(--surface)",
               border: "1px solid var(--border)",
               borderRadius: "var(--radius-lg)",
@@ -250,7 +254,7 @@ export default function RingkasanPage() {
                 ))}
               </div>
             )}
-          </section>
+          </Link>
 
           {terakhir.length ? (
             <>

@@ -6,10 +6,10 @@
 import { and, desc, eq, gte, isNull, lt, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { accounts, categories, transactions } from "@/backend/db/schema";
+import { batasBulan } from "@/backend/services/wib";
 
-// WIB tidak punya DST. Bulan berjalan dihitung menurut jam Jakarta, bukan UTC,
-// supaya transaksi jam 7 pagi tanggal 1 tidak jatuh ke bulan sebelumnya.
-const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+// Diekspor ulang: dbcheck.ts mengimpornya dari sini.
+export { batasBulan };
 
 export type Ringkasan = {
   balance: string;
@@ -18,35 +18,6 @@ export type Ringkasan = {
   by_category: { id: string | null; name: string; icon: string | null; total: string }[];
   pending_count: number;
 };
-
-const NAMA_BULAN = [
-  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
-];
-
-/** Batas bulan menurut WIB, dikembalikan sebagai waktu UTC untuk query. */
-export function batasBulan(key?: string, sekarang = new Date()) {
-  const wib = new Date(sekarang.getTime() + WIB_OFFSET_MS);
-  const tahun = key ? Number(key.slice(0, 4)) : wib.getUTCFullYear();
-  const bulan = key ? Number(key.slice(5, 7)) - 1 : wib.getUTCMonth();
-
-  const awal = new Date(Date.UTC(tahun, bulan, 1) - WIB_OFFSET_MS);
-  const akhir = new Date(Date.UTC(tahun, bulan + 1, 1) - WIB_OFFSET_MS);
-
-  // Berapa hari bulan ini sudah berjalan; untuk bulan lampau, sebulan penuh.
-  const habis = sekarang >= akhir;
-  const hari = habis
-    ? new Date(Date.UTC(tahun, bulan + 1, 0)).getUTCDate()
-    : Math.max(1, wib.getUTCDate());
-
-  return {
-    key: `${tahun}-${String(bulan + 1).padStart(2, "0")}`,
-    label: `${NAMA_BULAN[bulan]}${tahun === wib.getUTCFullYear() ? "" : ` ${tahun}`}`,
-    awal,
-    akhir,
-    hari,
-  };
-}
 
 export async function ringkasan(userId: string, monthKey?: string): Promise<Ringkasan> {
   const bulan = batasBulan(monthKey);
