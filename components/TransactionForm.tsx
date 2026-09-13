@@ -17,6 +17,7 @@ import {
   WarningBanner,
 } from "@/components/ui";
 import { formatRupiah, fromInputLocal, hanyaDigit, toInputLocal } from "@/lib/format";
+import { waktuAwal } from "@/lib/periode";
 
 export type TransaksiAwal = {
   id: string;
@@ -38,7 +39,14 @@ type Kategori = {
   hidden: boolean;
 };
 
-export function TransactionForm({ awal }: { awal?: TransaksiAwal }) {
+export function TransactionForm({
+  awal,
+  tanggal,
+}: {
+  awal?: TransaksiAwal;
+  /** "2026-09-13" dari kepala hari di layar Transaksi; hanya untuk transaksi baru. */
+  tanggal?: string | null;
+}) {
   const router = useRouter();
 
   const [akun, setAkun] = useState<Akun[] | null>(null);
@@ -48,7 +56,9 @@ export function TransactionForm({ awal }: { awal?: TransaksiAwal }) {
   const [kategoriId, setKategoriId] = useState<string | null>(awal?.category_id ?? null);
   const [nominal, setNominal] = useState(awal?.amount ?? "");
   const [arah, setArah] = useState<"debit" | "credit">(awal?.direction ?? "debit");
-  const [waktu, setWaktu] = useState(toInputLocal(awal?.occurred_at ?? new Date().toISOString()));
+  const [waktu, setWaktu] = useState(() =>
+    awal ? toInputLocal(awal.occurred_at) : waktuAwal(tanggal),
+  );
   const [catatan, setCatatan] = useState(awal?.note ?? awal?.merchant ?? "");
 
   const [galat, setGalat] = useState<string | null>(null);
@@ -109,7 +119,9 @@ export function TransactionForm({ awal }: { awal?: TransaksiAwal }) {
       setGalat(data?.error?.message ?? "Gagal menyimpan. Coba lagi.");
       return;
     }
-    router.push("/transaksi");
+    // Kembali ke bulan transaksinya, bukan bulan berjalan: yang baru ditambah
+    // untuk tanggal lampau langsung kelihatan.
+    router.push(`/transaksi?bulan=${waktu.slice(0, 7)}`);
   }
 
   async function hapus() {
@@ -123,7 +135,7 @@ export function TransactionForm({ awal }: { awal?: TransaksiAwal }) {
       setGalat("Gagal menghapus. Coba lagi.");
       return;
     }
-    router.push("/transaksi");
+    router.push(`/transaksi?bulan=${waktu.slice(0, 7)}`);
   }
 
   if (akun === null) {

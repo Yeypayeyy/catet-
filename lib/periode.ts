@@ -104,3 +104,18 @@ export function kelompokkanPerHari<T extends Bernominal>(items: T[]): Hari<T>[] 
   }
   return [...peta.values()].sort((a, b) => (a.tanggal < b.tanggal ? 1 : -1));
 }
+
+/**
+ * Nilai awal <input type="datetime-local"> saat menambah transaksi dari
+ * kepala hari di layar Transaksi: tanggal yang ditekan, jam sekarang.
+ * Tanggal rusak (termasuk "2026-02-30") jatuh ke waktu sekarang.
+ */
+export function waktuAwal(tanggal: string | null | undefined, sekarang = new Date()): string {
+  const jam = `${p2(sekarang.getHours())}:${p2(sekarang.getMinutes())}`;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(tanggal ?? "");
+  if (m) {
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+    if (d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3]) return `${tanggal}T${jam}`;
+  }
+  return `${sekarang.getFullYear()}-${p2(sekarang.getMonth() + 1)}-${p2(sekarang.getDate())}T${jam}`;
+}

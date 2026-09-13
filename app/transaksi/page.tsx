@@ -239,13 +239,23 @@ function TransaksiPage() {
           ) : (
             kelompokkanPerHari(items).map((h) => (
               <section key={h.tanggal} style={kartu}>
-                <div
+                {/* Kepala hari = jalan pintas menambah transaksi di tanggal itu. */}
+                <button
+                  type="button"
+                  aria-label={`Tambah transaksi tanggal ${h.angka}`}
+                  onClick={() => router.push(`/transaksi/baru?tanggal=${h.tanggal}`)}
                   style={{
                     display: "flex",
                     alignItems: "center",
                     gap: "var(--space-2)",
+                    width: "100%",
                     padding: "var(--space-3) var(--card-x)",
+                    background: "transparent",
+                    border: 0,
                     borderBottom: "1px solid var(--border)",
+                    color: "var(--ink)",
+                    textAlign: "left",
+                    cursor: "pointer",
                   }}
                 >
                   <span
@@ -262,7 +272,7 @@ function TransaksiPage() {
                   </span>
                   {h.masuk > 0n ? <Amount value={h.masuk} direction="credit" size="sm" /> : null}
                   {h.keluar > 0n ? <Amount value={h.keluar} size="sm" muted /> : null}
-                </div>
+                </button>
 
                 {h.items.map((t) => (
                   <BarisTransaksi

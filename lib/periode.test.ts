@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   bacaPeriode,
+  waktuAwal,
   batasBulanWib,
   bulanValid,
   bulanWib,
@@ -99,5 +100,23 @@ describe("bacaPeriode", () => {
       tahun: 2026,
       perTahun: false,
     });
+  });
+});
+
+describe("waktuAwal", () => {
+  // Jam yang diharapkan dihitung dari waktu lokal mesin, supaya tes tidak
+  // bergantung zona waktu laptop atau CI.
+  const sekarang = new Date("2026-09-14T08:05:00Z");
+  const jam = `${String(sekarang.getHours()).padStart(2, "0")}:${String(sekarang.getMinutes()).padStart(2, "0")}`;
+
+  it("tanggal yang ditekan dengan jam sekarang", () => {
+    assert.equal(waktuAwal("2026-08-30", sekarang), `2026-08-30T${jam}`);
+  });
+
+  it("tanggal rusak atau kosong jatuh ke waktu sekarang", () => {
+    const kini = waktuAwal(null, sekarang);
+    assert.match(kini, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+    assert.equal(waktuAwal("2026-02-30", sekarang), kini);
+    assert.equal(waktuAwal("besok", sekarang), kini);
   });
 });
