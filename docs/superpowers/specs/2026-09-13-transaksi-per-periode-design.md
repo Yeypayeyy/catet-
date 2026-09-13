@@ -121,8 +121,9 @@ diubah karena masih dipakai Review dan Ringkasan.
 - `backend/services/monthly-rows.test.ts` untuk `isiDuaBelasBulan`: bulan kosong
   jadi nol, urutan Januari–Desember, nominal tetap string.
 - `node --test`, `eslint`, `next build` lulus.
-- Server lokal: `GET /api/transactions/monthly?year=2026` tanpa session → 401;
-  `year=abc` → 400.
+- Server lokal: `GET /api/transactions/monthly` tanpa session → 401 (session
+  dicek sebelum query, seperti route lain, jadi `year=abc` tanpa session juga
+  401). `monthlyTotals` dicocokkan dengan query mentah ke database.
 
 ## Di luar lingkup
 
