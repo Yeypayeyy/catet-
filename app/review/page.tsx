@@ -13,6 +13,7 @@ import {
   BottomNav,
   Button,
   CategoryChip,
+  CategoryGrid,
   EmptyState,
   Input,
   ScreenHeader,
@@ -32,7 +33,13 @@ type Transaksi = {
   suggested_categories?: SaranKategori[];
 };
 
-type Kategori = { id: string; name: string; icon: string | null };
+type Kategori = {
+  id: string;
+  name: string;
+  icon: string | null;
+  kind: "expense" | "income";
+  hidden: boolean;
+};
 
 export default function ReviewPage() {
   const [antrian, setAntrian] = useState<Transaksi[] | null>(null);
@@ -105,9 +112,11 @@ export default function ReviewPage() {
   const sisa = (antrian ?? []).filter((t) => !memudar[t.id]);
   const total = sisa.reduce((a, t) => a + BigInt(t.amount), 0n);
 
-  // Saran ditaruh paling atas, sisanya menyusul tanpa diulang.
+  // Saran di atas sebagai chip; grid di bawahnya berisi semua kategori sejenis
+  // dalam urutan buatan user, supaya letaknya selalu sama dan hafal di jempol.
   const saran = dibuka?.suggested_categories ?? [];
-  const lainnya = kategori.filter((c) => !saran.some((s) => s.id === c.id));
+  const jenis = dibuka?.direction === "credit" ? "income" : "expense";
+  const pilihan = kategori.filter((c) => c.kind === jenis && !c.hidden);
 
   return (
     <div style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
@@ -224,18 +233,12 @@ export default function ReviewPage() {
               </Seksi>
             ) : null}
 
-            <Seksi judul="Semua kategori">
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
-                {lainnya.map((c) => (
-                  <CategoryChip
-                    key={c.id}
-                    label={labelKategori(c)}
-                    selected={dipilih === c.id}
-                    onSelect={() => setDipilih(c.id)}
-                  />
-                ))}
-              </div>
-            </Seksi>
+            <CategoryGrid
+              kategori={pilihan}
+              terpilih={dipilih}
+              onPilih={setDipilih}
+              hrefKelola={`/kategori?jenis=${jenis === "income" ? "pemasukan" : "pengeluaran"}`}
+            />
 
             <Input
               label="Catatan"

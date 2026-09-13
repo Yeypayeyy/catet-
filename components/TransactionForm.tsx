@@ -7,8 +7,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
-import { Button, CategoryChip, EmptyState, Input, Select, WarningBanner } from "@/components/ui";
-import { formatRupiah, fromInputLocal, hanyaDigit, labelKategori, toInputLocal } from "@/lib/format";
+import {
+  Button,
+  CategoryChip,
+  CategoryGrid,
+  EmptyState,
+  Input,
+  Select,
+  WarningBanner,
+} from "@/components/ui";
+import { formatRupiah, fromInputLocal, hanyaDigit, toInputLocal } from "@/lib/format";
 
 export type TransaksiAwal = {
   id: string;
@@ -22,7 +30,13 @@ export type TransaksiAwal = {
 };
 
 type Akun = { id: string; name: string };
-type Kategori = { id: string; name: string; icon: string | null };
+type Kategori = {
+  id: string;
+  name: string;
+  icon: string | null;
+  kind: "expense" | "income";
+  hidden: boolean;
+};
 
 export function TransactionForm({ awal }: { awal?: TransaksiAwal }) {
   const router = useRouter();
@@ -39,6 +53,15 @@ export function TransactionForm({ awal }: { awal?: TransaksiAwal }) {
 
   const [galat, setGalat] = useState<string | null>(null);
   const [sibuk, setSibuk] = useState(false);
+
+  const jenis = arah === "credit" ? "income" : "expense";
+
+  function gantiArah(baru: "debit" | "credit") {
+    setArah(baru);
+    // Kategori pengeluaran tidak berlaku untuk pemasukan, dan sebaliknya.
+    const k = kategori.find((c) => c.id === kategoriId);
+    if (k && k.kind !== (baru === "credit" ? "income" : "expense")) setKategoriId(null);
+  }
 
   useEffect(() => {
     void (async () => {
@@ -133,12 +156,12 @@ export function TransactionForm({ awal }: { awal?: TransaksiAwal }) {
         <CategoryChip
           label="Pengeluaran"
           selected={arah === "debit"}
-          onSelect={() => setArah("debit")}
+          onSelect={() => gantiArah("debit")}
         />
         <CategoryChip
           label="Pemasukan"
           selected={arah === "credit"}
-          onSelect={() => setArah("credit")}
+          onSelect={() => gantiArah("credit")}
         />
       </div>
 
@@ -159,29 +182,17 @@ export function TransactionForm({ awal }: { awal?: TransaksiAwal }) {
 
       <Input label="Waktu" type="datetime-local" value={waktu} onChange={setWaktu} />
 
-      <section style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-        <span
-          style={{
-            fontSize: "var(--text-label-size)",
-            lineHeight: "var(--text-label-line)",
-            fontWeight: 500,
-            color: "var(--ink-2)",
-          }}
-        >
-          Kategori
-        </span>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
-          {kategori.map((c) => (
-            <CategoryChip
-              key={c.id}
-              label={labelKategori(c)}
-              selected={kategoriId === c.id}
-              // Ditekan lagi berarti batal memilih, bukan terkunci selamanya.
-              onSelect={() => setKategoriId((s) => (s === c.id ? null : c.id))}
-            />
-          ))}
-        </div>
-      </section>
+      <CategoryGrid
+        // Yang tersembunyi tetap tampil kalau sudah terpasang di transaksi ini,
+        // supaya pilihannya kelihatan.
+        kategori={kategori.filter(
+          (c) => c.kind === jenis && (!c.hidden || c.id === kategoriId),
+        )}
+        terpilih={kategoriId}
+        // Ditekan lagi berarti batal memilih, bukan terkunci selamanya.
+        onPilih={(id) => setKategoriId((s) => (s === id ? null : id))}
+        hrefKelola={`/kategori?jenis=${jenis === "income" ? "pemasukan" : "pengeluaran"}`}
+      />
 
       <Input
         label="Catatan"

@@ -6,17 +6,27 @@
 import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { categories, categoryRules, transactions } from "@/backend/db/schema";
-import { minuteOfDayWib, rankRules } from "@/backend/services/category-rank";
+import {
+  minuteOfDayWib,
+  rankRules,
+  susunSaran,
+  type KategoriSaran,
+} from "@/backend/services/category-rank";
 
 export type SuggestedCategory = { id: string; name: string; icon: string | null };
 
-/** Tiga kategori tersering milik user; dipakai kalau aturan tidak cukup. */
-async function frequentCategories(userId: string): Promise<SuggestedCategory[]> {
+/**
+ * Semua kategori milik user, tersering dulu. Tidak dibatasi tiga: penyaringan
+ * per jenis dan yang tersembunyi terjadi sesudahnya, di susunSaran.
+ */
+async function frequentCategories(userId: string): Promise<KategoriSaran[]> {
   const rows = await db
     .select({
       id: categories.id,
       name: categories.name,
       icon: categories.icon,
+      kind: categories.kind,
+      hiddenAt: categories.hiddenAt,
       n: count(transactions.id),
     })
     .from(categories)
@@ -29,11 +39,16 @@ async function frequentCategories(userId: string): Promise<SuggestedCategory[]> 
       ),
     )
     .where(and(eq(categories.userId, userId), isNull(categories.deletedAt)))
-    .groupBy(categories.id, categories.name, categories.icon, categories.createdAt)
-    .orderBy(desc(count(transactions.id)), categories.createdAt)
-    .limit(3);
+    .groupBy(categories.id)
+    .orderBy(desc(count(transactions.id)), categories.sortOrder, categories.createdAt);
 
-  return rows.map(({ id, name, icon }) => ({ id, name, icon }));
+  return rows.map(({ id, name, icon, kind, hiddenAt }) => ({
+    id,
+    name,
+    icon,
+    kind,
+    hidden: hiddenAt !== null,
+  }));
 }
 
 /**
@@ -47,7 +62,9 @@ async function frequentCategories(userId: string): Promise<SuggestedCategory[]> 
  */
 export async function pemberiSaran(
   userId: string,
-): Promise<(amount: bigint, occurredAt: Date) => SuggestedCategory[]> {
+): Promise<
+  (amount: bigint, occurredAt: Date, direction: "debit" | "credit") => SuggestedCategory[]
+> {
   // ponytail: seluruh rule milik user ditarik lalu dicocokkan di memori. Aturan
   // ini per-user dan tumbuh pelan (satu per nominal unik). Pindahkan ke WHERE
   // di SQL kalau satu user sudah ribuan rule.
@@ -64,38 +81,27 @@ export async function pemberiSaran(
     .from(categoryRules)
     .where(and(eq(categoryRules.userId, userId), isNull(categoryRules.deletedAt)));
 
-  const byId = new Map(
-    (
-      await db
-        .select({ id: categories.id, name: categories.name, icon: categories.icon })
-        .from(categories)
-        .where(and(eq(categories.userId, userId), isNull(categories.deletedAt)))
-    ).map((c) => [c.id, c]),
-  );
-
+  // Daftar tersering sudah memuat semua kategori, jadi sekaligus jadi peta id.
   const cadangan = await frequentCategories(userId);
+  const byId = new Map(cadangan.map((c) => [c.id, c]));
 
-  return (amount, occurredAt) => {
-    const out: SuggestedCategory[] = [];
-    for (const id of rankRules(rules, amount, minuteOfDayWib(occurredAt))) {
-      const c = byId.get(id);
-      if (c && out.length < 3) out.push(c);
-    }
-    for (const c of cadangan) {
-      if (out.length >= 3) break;
-      if (!out.some((s) => s.id === c.id)) out.push(c);
-    }
-    return out;
-  };
+  return (amount, occurredAt, direction) =>
+    susunSaran(
+      rankRules(rules, amount, minuteOfDayWib(occurredAt)),
+      byId,
+      cadangan,
+      direction === "credit" ? "income" : "expense",
+    );
 }
 
-/** Selalu mengembalikan tepat 3 kategori — kecuali user memang punya kurang dari 3. */
+/** Tiga kategori sejenis arah transaksi — kecuali user memang punya kurang dari 3. */
 export async function suggestCategories(
   userId: string,
   amount: bigint,
   occurredAt: Date,
+  direction: "debit" | "credit",
 ): Promise<SuggestedCategory[]> {
-  return (await pemberiSaran(userId))(amount, occurredAt);
+  return (await pemberiSaran(userId))(amount, occurredAt, direction);
 }
 
 /**

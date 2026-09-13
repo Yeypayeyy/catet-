@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { minuteOfDayWib, rankRules, type Rule } from "./category-rank.ts";
+import { minuteOfDayWib, rankRules, susunSaran, type Rule } from "./category-rank.ts";
 
 const rule = (r: Partial<Rule> & { categoryId: string }): Rule => ({
   amountMin: null,
@@ -73,5 +73,40 @@ describe("minuteOfDayWib", () => {
 
   it("membungkus melewati tengah malam", () => {
     assert.equal(minuteOfDayWib(new Date("2026-09-04T18:30:00Z")), 1 * 60 + 30);
+  });
+});
+
+describe("susunSaran", () => {
+  const k = (id: string, kind: "expense" | "income" = "expense", hidden = false) => ({
+    id,
+    name: id,
+    icon: null,
+    kind,
+    hidden,
+  });
+  const peta = (...xs: ReturnType<typeof k>[]) => new Map(xs.map((x) => [x.id, x]));
+
+  it("aturan dulu, lalu cadangan, maksimal tiga, tanpa duplikat", () => {
+    const semua = peta(k("a"), k("b"), k("c"), k("d"));
+    const hasil = susunSaran(["b", "a"], semua, [k("a"), k("c"), k("d")], "expense");
+    assert.deepEqual(hasil.map((x) => x.id), ["b", "a", "c"]);
+  });
+
+  it("kategori beda jenis dan yang tersembunyi tidak pernah muncul", () => {
+    const semua = peta(k("gaji", "income"), k("sembunyi", "expense", true), k("makan"));
+    const cadangan = [k("gaji", "income"), k("sembunyi", "expense", true), k("makan")];
+
+    assert.deepEqual(
+      susunSaran(["gaji", "sembunyi", "makan"], semua, cadangan, "expense").map((x) => x.id),
+      ["makan"],
+    );
+    assert.deepEqual(
+      susunSaran(["makan"], semua, cadangan, "income").map((x) => x.id),
+      ["gaji"],
+    );
+  });
+
+  it("hanya membawa id, nama, dan ikon", () => {
+    assert.deepEqual(susunSaran([], peta(), [k("a")], "expense"), [{ id: "a", name: "a", icon: null }]);
   });
 });

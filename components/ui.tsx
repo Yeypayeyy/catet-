@@ -10,7 +10,7 @@
 
 import { useId, useState, type CSSProperties, type ReactNode } from "react";
 import { Icon, type NamaIkon } from "@/components/Icon";
-import { formatRupiah } from "@/lib/format";
+import { formatRupiah, labelKategori } from "@/lib/format";
 
 /* ---------- Amount ---------- */
 
@@ -217,6 +217,104 @@ export function CategoryChip({
         </span>
       ) : null}
     </button>
+  );
+}
+
+/* ---------- Grid kategori ---------- */
+
+export type KategoriGrid = { id: string; name: string; icon: string | null; hidden?: boolean };
+
+/**
+ * Pemilih kategori: grid tiga kolom bergaris, seperti app lama yang sudah
+ * biasa dipakai. Pemanggil yang menyaring (jenis, tersembunyi) dan mengurutkan.
+ * ✎ membuka pengelola kategori langsung, tanpa lewat Pengaturan.
+ */
+export function CategoryGrid({
+  kategori,
+  terpilih,
+  onPilih,
+  hrefKelola,
+}: {
+  kategori: KategoriGrid[];
+  terpilih: string | null;
+  onPilih: (id: string) => void;
+  hrefKelola: string;
+}) {
+  return (
+    <section style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span
+          style={{
+            fontSize: "var(--text-label-size)",
+            lineHeight: "var(--text-label-line)",
+            fontWeight: 500,
+            color: "var(--ink-2)",
+          }}
+        >
+          Kategori
+        </span>
+        <a
+          href={hrefKelola}
+          aria-label="Atur kategori"
+          style={{
+            width: 44,
+            height: 36,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            color: "var(--ink-3)",
+          }}
+        >
+          <Icon name="pensil" size={18} />
+        </a>
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          // Garis antar sel dari celah 1px di atas latar garis.
+          gap: 1,
+          background: "var(--border)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-md)",
+          overflow: "hidden",
+        }}
+      >
+        {kategori.map((c) => {
+          const dipilih = terpilih === c.id;
+          return (
+            <button
+              key={c.id}
+              type="button"
+              aria-pressed={dipilih}
+              onClick={() => onPilih(c.id)}
+              style={{
+                minHeight: 56,
+                padding: "var(--space-2)",
+                background: dipilih ? "var(--accent-soft)" : "var(--surface)",
+                color: dipilih ? "var(--accent)" : "var(--ink)",
+                boxShadow: dipilih ? "inset 0 0 0 1.5px var(--accent)" : "none",
+                border: 0,
+                fontSize: "var(--text-label-size)",
+                lineHeight: "var(--text-label-line)",
+                fontWeight: dipilih ? 600 : 500,
+                textAlign: "center",
+                cursor: "pointer",
+                opacity: c.hidden ? 0.5 : 1,
+                WebkitTapHighlightColor: "transparent",
+                // Nama panjang ("Keperluan kuliah") boleh dua baris, lalu dipotong.
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {labelKategori(c)}
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

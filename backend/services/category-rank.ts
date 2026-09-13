@@ -61,3 +61,34 @@ export function rankRules(rules: Rule[], amount: bigint, minute: number): string
 
   return [...new Set(matched.map((m) => m.rule.categoryId))];
 }
+
+export type KategoriSaran = {
+  id: string;
+  name: string;
+  icon: string | null;
+  kind: "expense" | "income";
+  hidden: boolean;
+};
+
+/**
+ * Rakit maksimal tiga saran: hasil aturan dulu, lalu cadangan "tersering".
+ * Hanya kategori yang boleh dipakai arah transaksi ini — jenis sama dan tidak
+ * disembunyikan. Aturan lama bisa saja menunjuk kategori yang sudah
+ * disembunyikan; yang begitu dilewati, bukan ditampilkan.
+ */
+export function susunSaran(
+  urutanAturan: string[],
+  kategori: Map<string, KategoriSaran>,
+  cadangan: KategoriSaran[],
+  kind: "expense" | "income",
+): { id: string; name: string; icon: string | null }[] {
+  const boleh = (c: KategoriSaran | undefined): c is KategoriSaran =>
+    Boolean(c && c.kind === kind && !c.hidden);
+
+  const out: KategoriSaran[] = [];
+  for (const c of [...urutanAturan.map((id) => kategori.get(id)), ...cadangan]) {
+    if (out.length >= 3) break;
+    if (boleh(c) && !out.some((s) => s.id === c.id)) out.push(c);
+  }
+  return out.map(({ id, name, icon }) => ({ id, name, icon }));
+}

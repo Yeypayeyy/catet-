@@ -25,6 +25,7 @@ export const directionEnum = pgEnum("direction", ["debit", "credit"]);
 export const parseStatusEnum = pgEnum("parse_status", ["pending", "parsed", "failed"]);
 export const accountKindEnum = pgEnum("account_kind", ["bank", "cash", "ewallet"]);
 export const txSourceEnum = pgEnum("tx_source", ["notification", "manual"]);
+export const categoryKindEnum = pgEnum("category_kind", ["expense", "income"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -66,6 +67,14 @@ export const categories = pgTable("categories", {
   name: text("name").notNull(),
   // Satu emoji ("🍜"), diketik user. Kosong = tampil tanpa ikon.
   icon: text("icon"),
+  // Arah transaksi yang boleh memakai kategori ini. Tidak bisa diubah setelah dibuat.
+  kind: categoryKindEnum("kind").notNull().default("expense"),
+  // Urutan manual dalam satu kind, kecil di atas.
+  sortOrder: integer("sort_order").notNull().default(0),
+  // Kategori bawaan app: disembunyikan, tidak pernah dihapus.
+  isDefault: boolean("is_default").notNull().default(false),
+  // Terpisah dari deleted_at: sembunyi bisa dibatalkan dan tetap jadi label transaksi lama.
+  hiddenAt: timestamp("hidden_at", { withTimezone: true }),
   parentId: uuid("parent_id").references((): AnyPgColumn => categories.id),
   ...timestamps,
 });

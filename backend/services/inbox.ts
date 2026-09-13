@@ -92,7 +92,7 @@ export async function processEvent(event: InboxEvent): Promise<ProcessResult> {
     transactionId: existing.id,
     amount: parsed.amount,
     direction: parsed.direction,
-    suggestedCategories: await suggestCategories(event.userId, parsed.amount, event.postedAt),
+    suggestedCategories: await suggestCategories(event.userId, parsed.amount, event.postedAt, parsed.direction),
   };
 }
 

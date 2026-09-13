@@ -42,7 +42,7 @@ type Transaksi = {
   merchant: string | null;
 };
 
-type Kategori = { id: string; name: string; icon: string | null };
+type Kategori = { id: string; name: string; icon: string | null; hidden: boolean };
 type Bulan = { month: string; income: string; spending: string };
 
 export default function Halaman() {
@@ -191,7 +191,7 @@ function TransaksiPage() {
         {!bulanan && kategori.length ? (
           <ChipRow style={{ padding: "0 var(--page-x) var(--space-4)" }}>
             <CategoryChip label="Semua" selected={saring === null} onSelect={() => setSaring(null)} />
-            {kategori.map((c) => (
+            {kategori.filter((c) => !c.hidden).map((c) => (
               <CategoryChip
                 key={c.id}
                 label={labelKategori(c)}

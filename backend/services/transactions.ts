@@ -141,7 +141,7 @@ export async function listTransactions(userId: string, f: ListFilter) {
   return {
     items: rows.map((r) => ({
       ...toJson(r, tagMap.get(r.id) ?? []),
-      ...(saran ? { suggested_categories: saran(r.amount, r.occurredAt) } : null),
+      ...(saran ? { suggested_categories: saran(r.amount, r.occurredAt, r.direction) } : null),
     })),
     total,
     // ponytail: offset pagination. Cukup untuk daftar transaksi satu orang;

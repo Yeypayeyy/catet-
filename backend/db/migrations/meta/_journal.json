@@ -36,6 +36,13 @@
       "when": 1789311287892,
       "tag": "0004_illegal_barracuda",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789317050365,
+      "tag": "0005_small_rhino",
+      "breakpoints": true
     }
   ]
 }

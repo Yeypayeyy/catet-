@@ -1,5 +1,5 @@
-// CRUD untuk empat tabel referensi yang bentuknya sama persis: categories,
-// accounts, merchants, tags. Semuanya milik satu user, semuanya soft delete,
+// CRUD untuk tabel referensi yang bentuknya sama persis: accounts, merchants,
+// tags. (Kategori punya aturan sendiri, lihat categories.ts.) Semuanya milik satu user, semuanya soft delete,
 // semuanya cuma beda di kolom isinya.
 //
 // Satu helper generik, empat deskriptor. Menulis empat modul yang isinya sama
@@ -8,7 +8,7 @@
 import { and, asc, eq, isNull, type SQL } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import { db } from "@/backend/db";
-import { accounts, categories, merchants, tags } from "@/backend/db/schema";
+import { accounts, merchants, tags } from "@/backend/db/schema";
 
 type OwnedTable = PgTable & {
   id: PgColumn;
@@ -85,16 +85,6 @@ export async function softDeleteOwned(
 // Kolom yang dikembalikan ke klien. initBalance sengaja tidak ada di sini —
 // bigint tidak boleh lewat JSON.stringify apa adanya, jadi dipetakan manual.
 export const CATALOG = {
-  categories: {
-    table: categories as OwnedTable,
-    columns: {
-      id: categories.id,
-      name: categories.name,
-      icon: categories.icon,
-      parentId: categories.parentId,
-    },
-    orderBy: categories.name,
-  },
   accounts: {
     table: accounts as OwnedTable,
     columns: {

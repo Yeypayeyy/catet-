@@ -23,7 +23,8 @@ export type NamaIkon =
   | "pengaturan"
   | "sampah"
   | "pensil"
-  | "statistik";
+  | "statistik"
+  | "pegangan";
 
 const PATH: Record<NamaIkon, string[]> = {
   rumah: [
@@ -65,6 +66,8 @@ const PATH: Record<NamaIkon, string[]> = {
     "m15 5 4 4",
   ],
   statistik: ["M3 3v16a2 2 0 0 0 2 2h16", "M18 17V9", "M13 17V5", "M8 17v-3"],
+  // grip-vertical: enam titik, digambar sebagai garis nol-panjang.
+  pegangan: ["M9 12h.01", "M9 5h.01", "M9 19h.01", "M15 12h.01", "M15 5h.01", "M15 19h.01"],
 };
 
 export function Icon({

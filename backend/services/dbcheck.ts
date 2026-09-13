@@ -222,8 +222,8 @@ assert.ok(sisa.deletedAt, "barisnya masih ada, cuma ditandai deleted_at");
   });
 
   const saran = await pemberiSaran(A.id);
-  const untuk25rb = saran(25000n, new Date());
-  const untuk9jt = saran(9000000n, new Date());
+  const untuk25rb = saran(25000n, new Date(), "debit");
+  const untuk9jt = saran(9000000n, new Date(), "debit");
 
   assert.equal(untuk25rb[0]?.id, lain.id, "nominal persis menang di kartu yang cocok");
   assert.notEqual(untuk9jt[0]?.id, lain.id, "kartu bernominal lain tidak ikut kena aturan itu");
@@ -231,7 +231,7 @@ assert.ok(sisa.deletedAt, "barisnya masih ada, cuma ditandai deleted_at");
 
   const kosong = await pemberiSaran(B.id);
   assert.equal(
-    kosong(25000n, new Date()).some((s) => s.id === lain.id),
+    kosong(25000n, new Date(), "debit").some((s) => s.id === lain.id),
     false,
     "aturan milik A tidak bocor ke B",
   );

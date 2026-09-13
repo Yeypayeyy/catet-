@@ -82,6 +82,6 @@ async function previousResult(userId: string, clientUuid: string): Promise<Inges
     transactionId: tx.id,
     amount: tx.amount,
     direction: tx.direction,
-    suggestedCategories: await suggestCategories(userId, tx.amount, tx.occurredAt),
+    suggestedCategories: await suggestCategories(userId, tx.amount, tx.occurredAt, tx.direction),
   };
 }
