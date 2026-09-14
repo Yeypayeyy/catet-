@@ -9,7 +9,8 @@ import { isiDuaBelasBulan, type MonthRow } from "@/backend/services/monthly-rows
 // transaksi 00:30 tanggal 1 tidak jatuh ke bulan sebelumnya.
 const WIB_MS = 7 * 60 * 60 * 1000;
 
-export async function monthlyTotals(userId: string, year: number): Promise<MonthRow[]> {
+/** `categoryId` menyempitkan ke satu kategori — dipakai layar detail kategori di Statistik. */
+export async function monthlyTotals(userId: string, year: number, categoryId?: string): Promise<MonthRow[]> {
   const bulan = sql<number>`extract(month from ${transactions.occurredAt} at time zone 'Asia/Jakarta')::int`;
 
   const rows = await db
@@ -23,6 +24,7 @@ export async function monthlyTotals(userId: string, year: number): Promise<Month
       and(
         eq(transactions.userId, userId),
         isNull(transactions.deletedAt),
+        categoryId ? eq(transactions.categoryId, categoryId) : undefined,
         gte(transactions.occurredAt, new Date(Date.UTC(year, 0, 1) - WIB_MS)),
         lt(transactions.occurredAt, new Date(Date.UTC(year + 1, 0, 1) - WIB_MS)),
       ),

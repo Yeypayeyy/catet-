@@ -166,7 +166,23 @@ function StatistikPage() {
               <Donat irisan={irisan} total={totalJenis} jenis={jenis} />
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {irisan.map((x, i) => (
-                  <BarisIrisan key={x.id} x={x} warna={warnaIrisan(x, i)} jenis={jenis} />
+                  <BarisIrisan
+                    key={x.id}
+                    x={x}
+                    warna={warnaIrisan(x, i)}
+                    jenis={jenis}
+                    // "Belum" dan "Lainnya" bukan kategori sungguhan, jadi tidak punya detail.
+                    onClick={
+                      x.id === "belum" || x.id === "lainnya"
+                        ? undefined
+                        : () =>
+                            router.push(
+                              `/statistik/kategori?id=${x.id}&jenis=${jenis}&${
+                                perTahun ? `tampilan=tahunan&tahun=${tahun}` : `bulan=${bulan}`
+                              }`,
+                            )
+                    }
+                  />
                 ))}
               </div>
             </div>
@@ -289,15 +305,36 @@ function Donat({ irisan, total, jenis }: { irisan: Irisan[]; total: bigint; jeni
   );
 }
 
-function BarisIrisan({ x, warna, jenis }: { x: Irisan; warna: string; jenis: "debit" | "credit" }) {
+function BarisIrisan({
+  x,
+  warna,
+  jenis,
+  onClick,
+}: {
+  x: Irisan;
+  warna: string;
+  jenis: "debit" | "credit";
+  onClick?: () => void;
+}) {
   return (
-    <div
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!onClick}
       style={{
         display: "flex",
         alignItems: "center",
         gap: "var(--space-3)",
+        width: "100%",
         minHeight: 44,
+        padding: 0,
+        background: "transparent",
+        border: 0,
         borderTop: "1px solid var(--border)",
+        color: "inherit",
+        font: "inherit",
+        textAlign: "left",
+        cursor: onClick ? "pointer" : "default",
       }}
     >
       <span style={{ width: 10, height: 10, borderRadius: 3, background: warna, flex: "none" }} />
@@ -324,7 +361,7 @@ function BarisIrisan({ x, warna, jenis }: { x: Irisan; warna: string; jenis: "de
         {x.persen}%
       </span>
       <Amount value={x.total} direction={jenis} size="sm" />
-    </div>
+    </button>
   );
 }
 

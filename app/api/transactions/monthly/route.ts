@@ -13,6 +13,7 @@ const Query = z.object({
     .min(2000)
     .max(2100)
     .default(() => new Date(Date.now() + 7 * 60 * 60 * 1000).getUTCFullYear()),
+  category_id: z.uuid().optional(),
 });
 
 export async function GET(request: Request) {
@@ -22,6 +23,6 @@ export async function GET(request: Request) {
   const parsed = Query.safeParse(Object.fromEntries(new URL(request.url).searchParams));
   if (!parsed.success) return fail(400, "INVALID_QUERY", z.prettifyError(parsed.error));
 
-  const { year } = parsed.data;
-  return Response.json({ year, months: await monthlyTotals(userId, year) });
+  const { year, category_id } = parsed.data;
+  return Response.json({ year, months: await monthlyTotals(userId, year, category_id) });
 }
