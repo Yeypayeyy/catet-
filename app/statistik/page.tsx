@@ -5,8 +5,9 @@
 // Urutannya: empat angka periode, donat per kategori, lalu tren setahun.
 // Periodenya di URL dengan aturan yang sama persis dengan layar Transaksi.
 
-import { Suspense, useEffect, useState } from "react";
+import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Icon } from "@/components/Icon";
 import { NavPeriode } from "@/components/Periode";
 import { Amount, BottomNav, Button, CategoryChip, EmptyState, ScreenHeader } from "@/components/ui";
 import { formatRupiah, labelKategori } from "@/lib/format";
@@ -43,6 +44,7 @@ function StatistikPage() {
   const [data, setData] = useState<Statistik | null>(null);
   const [tren, setTren] = useState<Bulan[] | null>(null);
   const [belumLogin, setBelumLogin] = useState(false);
+  const [bukaLainnya, setBukaLainnya] = useState(false);
 
   useEffect(() => {
     let aktif = true;
@@ -78,8 +80,22 @@ function StatistikPage() {
 
   const masuk = BigInt(data?.income ?? "0");
   const keluar = BigInt(data?.spending ?? "0");
-  const irisan = potongIrisan(data?.by_category[jenis] ?? []);
+  const baris = data?.by_category[jenis] ?? [];
+  const irisan = potongIrisan(baris);
+  // Persennya tetap terhadap total seluruh kategori, bukan terhadap Lainnya.
+  const isiLainnya = potongIrisan(baris, baris.length).slice(irisan.length - 1);
   const totalJenis = jenis === "debit" ? keluar : masuk;
+
+  // "Belum dikategorikan" bukan kategori sungguhan, jadi tidak punya detail.
+  const keDetail = (x: Irisan) =>
+    x.id === "belum"
+      ? undefined
+      : () =>
+          router.push(
+            `/statistik/kategori?id=${x.id}&jenis=${jenis}&${
+              perTahun ? `tampilan=tahunan&tahun=${tahun}` : `bulan=${bulan}`
+            }`,
+          );
 
   if (belumLogin) {
     return (
@@ -165,25 +181,34 @@ function StatistikPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
               <Donat irisan={irisan} total={totalJenis} jenis={jenis} />
               <div style={{ display: "flex", flexDirection: "column" }}>
-                {irisan.map((x, i) => (
-                  <BarisIrisan
-                    key={x.id}
-                    x={x}
-                    warna={warnaIrisan(x, i)}
-                    jenis={jenis}
-                    // "Belum" dan "Lainnya" bukan kategori sungguhan, jadi tidak punya detail.
-                    onClick={
-                      x.id === "belum" || x.id === "lainnya"
-                        ? undefined
-                        : () =>
-                            router.push(
-                              `/statistik/kategori?id=${x.id}&jenis=${jenis}&${
-                                perTahun ? `tampilan=tahunan&tahun=${tahun}` : `bulan=${bulan}`
-                              }`,
-                            )
-                    }
-                  />
-                ))}
+                {irisan.map((x, i) =>
+                  x.id === "lainnya" ? (
+                    <Fragment key={x.id}>
+                      {/* Lainnya dibuka di tempat: isinya kategori di luar tujuh teratas. */}
+                      <BarisIrisan
+                        x={x}
+                        warna={warnaIrisan(x, i)}
+                        jenis={jenis}
+                        terbuka={bukaLainnya}
+                        onClick={() => setBukaLainnya((b) => !b)}
+                      />
+                      {bukaLainnya
+                        ? isiLainnya.map((y) => (
+                            <BarisIrisan
+                              key={y.id}
+                              x={y}
+                              warna="var(--chart-8)"
+                              jenis={jenis}
+                              menjorok
+                              onClick={keDetail(y)}
+                            />
+                          ))
+                        : null}
+                    </Fragment>
+                  ) : (
+                    <BarisIrisan key={x.id} x={x} warna={warnaIrisan(x, i)} jenis={jenis} onClick={keDetail(x)} />
+                  ),
+                )}
               </div>
             </div>
           )}
@@ -310,24 +335,33 @@ function BarisIrisan({
   warna,
   jenis,
   onClick,
+  terbuka,
+  menjorok,
 }: {
   x: Irisan;
   warna: string;
   jenis: "debit" | "credit";
   onClick?: () => void;
+  /** Hanya untuk baris Lainnya: ada isinya yang bisa dibuka. */
+  terbuka?: boolean;
+  /** Anak Lainnya. */
+  menjorok?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={!onClick}
+      aria-expanded={terbuka}
       style={{
+        paddingLeft: menjorok ? "var(--space-5)" : 0,
         display: "flex",
         alignItems: "center",
         gap: "var(--space-3)",
         width: "100%",
         minHeight: 44,
-        padding: 0,
+        paddingBlock: 0,
+        paddingRight: 0,
         background: "transparent",
         border: 0,
         borderTop: "1px solid var(--border)",
@@ -351,6 +385,17 @@ function BarisIrisan({
       >
         {x.id === "lainnya" ? x.name : labelKategori(x)}
       </span>
+      {terbuka !== undefined ? (
+        <span
+          style={{
+            display: "inline-flex",
+            color: "var(--ink-3)",
+            transform: terbuka ? "rotate(90deg)" : undefined,
+          }}
+        >
+          <Icon name="panah-kanan" size={16} />
+        </span>
+      ) : null}
       <span
         style={{
           fontSize: "var(--text-caption-size)",
