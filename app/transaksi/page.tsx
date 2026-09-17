@@ -150,7 +150,7 @@ function TransaksiPage() {
   const labelKat = Object.fromEntries(kategori.map((c) => [c.id, labelKategori(c)]));
 
   return (
-    <div style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
       <div style={{ flex: 1, width: "100%", maxWidth: 480, marginInline: "auto" }}>
         <ScreenHeader title="Transaksi" />
 

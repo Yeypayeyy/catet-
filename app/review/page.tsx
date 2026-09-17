@@ -57,7 +57,10 @@ export default function ReviewPage() {
   const [menyimpan, setMenyimpan] = useState(false);
 
   const muat = useCallback(async () => {
-    const r = await fetch("/api/transactions?is_reviewed=false&with_suggestions=true&limit=50");
+    const [r, rc] = await Promise.all([
+      fetch("/api/transactions?is_reviewed=false&with_suggestions=true&limit=50"),
+      fetch("/api/categories"),
+    ]);
     if (r.status === 401) {
       setBelumLogin(true);
       setAntrian([]);
@@ -66,7 +69,6 @@ export default function ReviewPage() {
     const data = await r.json();
     setAntrian(data.items ?? []);
 
-    const rc = await fetch("/api/categories");
     if (rc.ok) setKategori((await rc.json()).items ?? []);
   }, []);
 
@@ -142,7 +144,7 @@ export default function ReviewPage() {
   const pilihan = kategori.filter((c) => c.kind === jenis && !c.hidden);
 
   return (
-    <div style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
       <ScreenHeader
         meta="Belum dikategorikan"
         title={sisa.length ? `${sisa.length} transaksi` : "Review"}

@@ -40,17 +40,20 @@ export default function RingkasanPage() {
   const [belumLogin, setBelumLogin] = useState(false);
 
   const muat = useCallback(async () => {
-    const r = await fetch("/api/summary");
+    // Dikirim bersamaan: tiap request menunggu server sendiri-sendiri.
+    const [r, rt, rc] = await Promise.all([
+      fetch("/api/summary"),
+      fetch("/api/transactions?limit=3"),
+      fetch("/api/categories"),
+    ]);
     if (r.status === 401) {
       setBelumLogin(true);
       return;
     }
     setData(await r.json());
 
-    const rt = await fetch("/api/transactions?limit=3");
     if (rt.ok) setTerakhir((await rt.json()).items ?? []);
 
-    const rc = await fetch("/api/categories");
     if (rc.ok) {
       const items: { id: string; name: string; icon: string | null }[] =
         (await rc.json()).items ?? [];
@@ -88,7 +91,7 @@ export default function RingkasanPage() {
   );
 
   return (
-    <div style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
       <div style={{ flex: 1, width: "100%", maxWidth: 480, marginInline: "auto" }}>
         <header style={{ padding: "var(--space-6) var(--page-x) var(--space-3)" }}>
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: -8 }}>

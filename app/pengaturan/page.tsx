@@ -47,7 +47,11 @@ export default function PengaturanPage() {
   const [belumLogin, setBelumLogin] = useState(false);
 
   const muat = useCallback(async () => {
-    const rd = await fetch("/api/devices");
+    const [rd, rq, rh] = await Promise.all([
+      fetch("/api/devices"),
+      fetch("/api/dead-letters"),
+      fetch("/api/health"),
+    ]);
     if (rd.status === 401) {
       setBelumLogin(true);
       setDevices([]);
@@ -61,10 +65,8 @@ export default function PengaturanPage() {
       ),
     );
 
-    const rq = await fetch("/api/dead-letters");
     if (rq.ok) setDlq((await rq.json()).items ?? []);
 
-    const rh = await fetch("/api/health");
     setServer(rh.ok ? "ok" : "mati");
   }, []);
 

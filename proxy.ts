@@ -4,9 +4,8 @@
 // tanpa session. Pengecualian: /api/ingest autentikasinya pakai token device,
 // /api/health harus bisa diakses monitor, /api/auth memang pintu masuknya.
 //
-// ponytail: getUser() di sini berarti satu panggilan jaringan per request /api.
-// Cukup untuk app satu orang. Kalau nanti terasa lambat, ganti jadi pengecekan
-// cookie saja di sini dan tegakkan autentikasi sungguhan di tiap route handler.
+// getClaims() memverifikasi JWT secara lokal (kunci ES256 di-cache), jadi tidak
+// ada panggilan jaringan per request kecuali saat token perlu di-refresh.
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/backend/auth/supabase";
 
@@ -31,8 +30,8 @@ export async function proxy(request: NextRequest) {
     set: (name, value, options) => response.cookies.set(name, value, options),
   });
 
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) {
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims) {
     return NextResponse.json(
       { error: { code: "UNAUTHORIZED", message: "Butuh session yang valid" } },
       { status: 401 },

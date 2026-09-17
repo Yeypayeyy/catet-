@@ -17,11 +17,14 @@ export type SessionUser = { userId: string; email: string };
 /** Session yang sedang berjalan, atau null kalau belum login. */
 export async function getSessionUser(cookies: CookieStore): Promise<SessionUser | null> {
   const supabase = createSupabaseServerClient(cookies);
-  // getUser(), bukan getSession(): yang ini memverifikasi token ke Supabase,
-  // sedangkan getSession() cuma percaya isi cookie.
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user?.email) return null;
-  return { userId: data.user.id, email: data.user.email };
+  // getClaims(), bukan getSession(): tanda tangan JWT tetap diverifikasi, tapi
+  // lokal lewat kunci publik (ES256) — tanpa bolak-balik ke Supabase Auth.
+  // ponytail: session yang dicabut masih lolos sampai JWT-nya kedaluwarsa
+  // (~1 jam). Pakai getUser() lagi kalau pencabutan instan dibutuhkan.
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (error || !claims?.sub || !claims.email) return null;
+  return { userId: claims.sub, email: claims.email };
 }
 
 /**
