@@ -11,7 +11,8 @@ const p2 = (n: number) => String(n).padStart(2, "0");
 
 /**
  * Tanggal mulai "bulan" milik user (1–28), untuk yang gajian bukan tanggal 1.
- * Bulan "2026-08" dengan awal 28 = 28 Agu s.d. 27 Sep: dinamai bulan mulainya.
+ * Bulan "2026-09" dengan awal 28 = 28 Agu s.d. 27 Sep: dinamai bulan gajinya
+ * dipakai, yaitu bulan berakhirnya.
  *
  * ponytail: disimpan di localStorage seperti tema, jadi per device. Pindah ke
  * kolom users kalau HP dan laptop harus selalu sepakat.
@@ -32,7 +33,8 @@ export function awalValid(n: number): number {
 export function bulanWib(sekarang = new Date(), awal = 1): string {
   const w = new Date(sekarang.getTime() + WIB_MS);
   const key = `${w.getUTCFullYear()}-${p2(w.getUTCMonth() + 1)}`;
-  return w.getUTCDate() < awal ? geserBulan(key, -1) : key;
+  // Sejak tanggal gajian, sudah masuk periode bulan depan.
+  return awal > 1 && w.getUTCDate() >= awal ? geserBulan(key, 1) : key;
 }
 
 export function bulanValid(key: string | null | undefined): key is string {
@@ -56,8 +58,10 @@ export function labelBulan(key: string, awal = 1): string {
  * API inklusif — tanpa itu transaksi tepat 00:00 tanggal 1 ikut dua bulan.
  */
 export function batasBulanWib(key: string, awal = 1): { from: string; to: string } {
-  const mulai = Date.UTC(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, awal) - WIB_MS;
-  const akhir = Date.UTC(Number(key.slice(0, 4)), Number(key.slice(5, 7)), awal) - WIB_MS;
+  // Awal > 1: periode mulai di bulan sebelumnya.
+  const bulan = Number(key.slice(5, 7)) - (awal > 1 ? 2 : 1);
+  const mulai = Date.UTC(Number(key.slice(0, 4)), bulan, awal) - WIB_MS;
+  const akhir = Date.UTC(Number(key.slice(0, 4)), bulan + 1, awal) - WIB_MS;
   return { from: new Date(mulai).toISOString(), to: new Date(akhir - 1).toISOString() };
 }
 

@@ -14,19 +14,20 @@ const HARI_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Batas bulan menurut WIB, dikembalikan sebagai waktu UTC untuk query.
- * `mulai` = tanggal awal bulan milik user (1–28): bulan "2026-08" dengan
- * mulai 28 adalah 28 Agustus s.d. 27 September.
+ * `mulai` = tanggal awal bulan milik user (1–28): bulan "2026-09" dengan
+ * mulai 28 adalah 28 Agustus s.d. 27 September — dinamai bulan berakhirnya.
  */
 export function batasBulan(key?: string, sekarang = new Date(), mulai = 1) {
   const wib = new Date(sekarang.getTime() + WIB_OFFSET_MS);
-  // Sebelum tanggal mulai, masih periode yang dibuka bulan lalu.
-  const geser = !key && wib.getUTCDate() < mulai ? -1 : 0;
+  // Sejak tanggal gajian, sudah masuk periode bulan depan.
+  const geser = !key && mulai > 1 && wib.getUTCDate() >= mulai ? 1 : 0;
   const k = new Date(Date.UTC(wib.getUTCFullYear(), wib.getUTCMonth() + geser, 1));
   const tahun = key ? Number(key.slice(0, 4)) : k.getUTCFullYear();
   const bulan = key ? Number(key.slice(5, 7)) - 1 : k.getUTCMonth();
 
-  const awal = new Date(Date.UTC(tahun, bulan, mulai) - WIB_OFFSET_MS);
-  const akhir = new Date(Date.UTC(tahun, bulan + 1, mulai) - WIB_OFFSET_MS);
+  const mundur = mulai > 1 ? 1 : 0;
+  const awal = new Date(Date.UTC(tahun, bulan - mundur, mulai) - WIB_OFFSET_MS);
+  const akhir = new Date(Date.UTC(tahun, bulan + 1 - mundur, mulai) - WIB_OFFSET_MS);
 
   // Berapa hari periode ini sudah berjalan; untuk periode lampau, penuh.
   const habis = sekarang >= akhir;
@@ -52,7 +53,7 @@ export function batasBulan(key?: string, sekarang = new Date(), mulai = 1) {
 /** Satu tahun menurut WIB: dua belas bulan yang mulai tanggal `mulai`. `akhir` eksklusif. */
 export function batasTahun(tahun: number, mulai = 1) {
   return {
-    awal: new Date(Date.UTC(tahun, 0, mulai) - WIB_OFFSET_MS),
-    akhir: new Date(Date.UTC(tahun + 1, 0, mulai) - WIB_OFFSET_MS),
+    awal: new Date(Date.UTC(tahun, mulai > 1 ? -1 : 0, mulai) - WIB_OFFSET_MS),
+    akhir: new Date(Date.UTC(tahun + 1, mulai > 1 ? -1 : 0, mulai) - WIB_OFFSET_MS),
   };
 }

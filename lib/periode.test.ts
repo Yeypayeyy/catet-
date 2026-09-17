@@ -130,18 +130,19 @@ describe("waktuAwal", () => {
 
 describe("awal bulan", () => {
   it("bulan mulai tanggal 28: 28 Agu 00:00 WIB s.d. 1 ms sebelum 28 Sep", () => {
-    assert.deepEqual(batasBulanWib("2026-08", 28), {
+    assert.deepEqual(batasBulanWib("2026-09", 28), {
       from: "2026-08-27T17:00:00.000Z",
       to: "2026-09-27T16:59:59.999Z",
     });
-    assert.equal(labelBulan("2026-08", 28), "28 Agu – 27 Sep 2026");
-    assert.equal(labelBulan("2026-12", 28), "28 Des 2026 – 27 Jan 2027");
+    assert.equal(labelBulan("2026-09", 28), "28 Agu – 27 Sep 2026");
+    assert.equal(labelBulan("2027-01", 28), "28 Des 2026 – 27 Jan 2027");
   });
 
-  it("sebelum tanggal mulai, bulan berjalan masih bulan lalu", () => {
-    assert.equal(bulanWib(new Date("2026-09-17T05:00:00Z"), 28), "2026-08");
-    assert.equal(bulanWib(new Date("2026-09-27T17:00:00Z"), 28), "2026-09");
-    assert.equal(bulanWib(new Date("2026-01-10T05:00:00Z"), 28), "2025-12");
+  it("dinamai bulan berakhirnya: sejak tanggal gajian sudah bulan depan", () => {
+    assert.equal(bulanWib(new Date("2026-09-17T05:00:00Z"), 28), "2026-09");
+    assert.equal(bulanWib(new Date("2026-09-27T17:00:00Z"), 28), "2026-10");
+    assert.equal(bulanWib(new Date("2026-12-28T05:00:00Z"), 28), "2027-01");
+    assert.equal(bulanWib(new Date("2026-09-28T05:00:00Z")), "2026-09");
   });
 
   it("nilai di luar 1–28 jatuh ke 1", () => {
@@ -169,11 +170,11 @@ describe("rentang bebas", () => {
     assert.equal(bacaPeriode(sp("dari=2026-02-30&sampai=2026-03-01"), "2026-09", "tahunan").rentang, null);
   });
 
-  it("setahun dengan awal 28 = 28 Jan s.d. 27 Jan tahun depan", () => {
+  it("setahun dengan awal 28 = 28 Des tahun lalu s.d. 27 Des", () => {
     const p = bacaPeriode(new URLSearchParams("tampilan=tahunan&tahun=2026"), "2026-09", "tahunan");
     assert.deepEqual(batasPeriode(p, 28), {
-      from: "2026-01-27T17:00:00.000Z",
-      to: "2027-01-27T16:59:59.999Z",
+      from: "2025-12-27T17:00:00.000Z",
+      to: "2026-12-27T16:59:59.999Z",
     });
   });
 });

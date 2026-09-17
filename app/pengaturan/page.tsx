@@ -213,7 +213,7 @@ export default function PengaturanPage() {
               error={awalValid(Number(awalBulan)) === Number(awalBulan) ? undefined : "Isi 1 sampai 28."}
               hint={
                 Number(awalBulan) > 1 && awalValid(Number(awalBulan)) === Number(awalBulan)
-                  ? `Bulan Agustus = ${awalBulan} Agu – ${Number(awalBulan) - 1} Sep.`
+                  ? `Bulan September = ${awalBulan} Agu – ${Number(awalBulan) - 1} Sep.`
                   : "Tanggal gajian. 1 = bulan kalender."
               }
             />
