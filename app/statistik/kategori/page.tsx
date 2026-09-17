@@ -4,14 +4,24 @@
 // kategori itu, lalu transaksinya per hari.
 //
 // URL: ?id=<kategori>&jenis=debit|credit ditambah periode yang sama dengan
-// Statistik (?bulan=2026-09 atau ?tampilan=tahunan&tahun=2026).
+// Statistik (?bulan=2026-09, ?tampilan=tahunan&tahun=2026, atau ?dari=…&sampai=…).
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NavPeriode } from "@/components/Periode";
 import { Amount, EmptyState, ScreenHeader } from "@/components/ui";
 import { labelKategori } from "@/lib/format";
-import { bacaPeriode, batasBulanWib, bulanWib, geserBulan, kelompokkanPerHari, labelBulan } from "@/lib/periode";
+import {
+  bacaAwalBulan,
+  bacaPeriode,
+  batasPeriode,
+  bulanWib,
+  geserBulan,
+  kelompokkanPerHari,
+  labelBulan,
+  labelRentang,
+  queryPeriode,
+} from "@/lib/periode";
 
 type Transaksi = {
   id: string;
@@ -37,8 +47,11 @@ export default function Halaman() {
 function DetailKategori() {
   const router = useRouter();
   const sp = useSearchParams();
-  const [bulanIni] = useState(() => bulanWib());
-  const { bulan, tahun, perTahun } = bacaPeriode(sp, bulanIni, "tahunan");
+  const [awal] = useState(bacaAwalBulan);
+  const [bulanIni] = useState(() => bulanWib(new Date(), awal));
+  const p = bacaPeriode(sp, bulanIni, "tahunan");
+  const { bulan, tahun, perTahun, rentang } = p;
+  const { from, to } = batasPeriode(p, awal);
   const id = sp.get("id") ?? "";
   const jenis = sp.get("jenis") === "credit" ? "credit" : "debit";
 
@@ -66,8 +79,6 @@ function DetailKategori() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems(null);
     void (async () => {
-      const from = batasBulanWib(perTahun ? `${tahun}-01` : bulan).from;
-      const to = batasBulanWib(perTahun ? `${tahun}-12` : bulan).to;
       const semua: Transaksi[] = [];
       let offset: number | null = 0;
       while (offset !== null) {
@@ -90,23 +101,23 @@ function DetailKategori() {
     return () => {
       aktif = false;
     };
-  }, [id, jenis, perTahun, tahun, bulan]);
+  }, [id, jenis, from, to]);
 
   useEffect(() => {
     let aktif = true;
     void (async () => {
-      const r = await fetch(`/api/transactions/monthly?year=${tahun}&category_id=${id}`);
+      const r = await fetch(`/api/transactions/monthly?year=${tahun}&category_id=${id}&start_day=${awal}`);
       if (aktif && r.ok) setTren((await r.json()).months);
     })();
     return () => {
       aktif = false;
     };
-  }, [id, tahun]);
+  }, [id, tahun, awal]);
 
   const periode = (q: string) => `id=${id}&jenis=${jenis}&${q}`;
   const buka = (q: string) => router.push(`/statistik/kategori?${periode(q)}`);
-  const qPeriode = perTahun ? `tampilan=tahunan&tahun=${tahun}` : `bulan=${bulan}`;
-  const label = perTahun ? String(tahun) : labelBulan(bulan);
+  const qPeriode = queryPeriode(p, "tahunan");
+  const label = rentang ? labelRentang(rentang.dari, rentang.sampai) : perTahun ? String(tahun) : labelBulan(bulan, awal);
   const total = (items ?? []).reduce((a, t) => a + BigInt(t.amount), 0n);
 
   return (
@@ -114,13 +125,18 @@ function DetailKategori() {
       <ScreenHeader title={judul} back={`/statistik?${qPeriode}`} />
 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", padding: "0 var(--page-x)" }}>
-        <NavPeriode
-          label={label}
-          onMundur={() =>
-            buka(perTahun ? `tampilan=tahunan&tahun=${tahun - 1}` : `bulan=${geserBulan(bulan, -1)}`)
-          }
-          onMaju={() => buka(perTahun ? `tampilan=tahunan&tahun=${tahun + 1}` : `bulan=${geserBulan(bulan, 1)}`)}
-        />
+        {rentang ? (
+          // Rentang bebas tidak punya "sebelum" dan "sesudah"; diubah dari Statistik.
+          <div style={{ textAlign: "center", fontWeight: 600, padding: "var(--space-2) 0" }}>{label}</div>
+        ) : (
+          <NavPeriode
+            label={label}
+            onMundur={() =>
+              buka(perTahun ? `tampilan=tahunan&tahun=${tahun - 1}` : `bulan=${geserBulan(bulan, -1)}`)
+            }
+            onMaju={() => buka(perTahun ? `tampilan=tahunan&tahun=${tahun + 1}` : `bulan=${geserBulan(bulan, 1)}`)}
+          />
+        )}
 
         <section style={kartu}>
           <div style={{ padding: "var(--card-y) var(--card-x)" }}>
@@ -136,7 +152,7 @@ function DetailKategori() {
               <Tren
                 bulan={tren}
                 jenis={jenis}
-                terpilih={perTahun ? null : bulan}
+                terpilih={perTahun || rentang ? null : bulan}
                 onPilih={(key) => buka(`bulan=${key}`)}
               />
             )}
@@ -162,7 +178,7 @@ function DetailKategori() {
                 </span>
                 <span style={{ flex: 1, fontSize: "var(--text-caption-size)", color: "var(--ink-3)" }}>
                   {h.namaHari}
-                  {perTahun ? ` · ${labelBulan(h.tanggal.slice(0, 7))}` : ""}
+                  {perTahun || rentang ? ` · ${labelBulan(h.tanggal.slice(0, 7))}` : ""}
                 </span>
                 <Amount value={jenis === "debit" ? h.keluar : h.masuk} direction={jenis} size="sm" muted={jenis === "debit"} />
               </div>

@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  awalValid,
   bacaPeriode,
+  batasPeriode,
+  batasRentangWib,
+  queryPeriode,
   waktuAwal,
   batasBulanWib,
   bulanValid,
@@ -86,11 +90,13 @@ describe("bacaPeriode", () => {
       bulan: "2026-03",
       tahun: 2026,
       perTahun: false,
+      rentang: null,
     });
     assert.deepEqual(bacaPeriode(sp("tampilan=tahunan&tahun=2025"), "2026-09", "tahunan"), {
       bulan: "2026-09",
       tahun: 2025,
       perTahun: true,
+      rentang: null,
     });
   });
 
@@ -99,6 +105,7 @@ describe("bacaPeriode", () => {
       bulan: "2026-09",
       tahun: 2026,
       perTahun: false,
+      rentang: null,
     });
   });
 });
@@ -118,5 +125,55 @@ describe("waktuAwal", () => {
     assert.match(kini, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
     assert.equal(waktuAwal("2026-02-30", sekarang), kini);
     assert.equal(waktuAwal("besok", sekarang), kini);
+  });
+});
+
+describe("awal bulan", () => {
+  it("bulan mulai tanggal 28: 28 Agu 00:00 WIB s.d. 1 ms sebelum 28 Sep", () => {
+    assert.deepEqual(batasBulanWib("2026-08", 28), {
+      from: "2026-08-27T17:00:00.000Z",
+      to: "2026-09-27T16:59:59.999Z",
+    });
+    assert.equal(labelBulan("2026-08", 28), "28 Agu – 27 Sep 2026");
+    assert.equal(labelBulan("2026-12", 28), "28 Des 2026 – 27 Jan 2027");
+  });
+
+  it("sebelum tanggal mulai, bulan berjalan masih bulan lalu", () => {
+    assert.equal(bulanWib(new Date("2026-09-17T05:00:00Z"), 28), "2026-08");
+    assert.equal(bulanWib(new Date("2026-09-27T17:00:00Z"), 28), "2026-09");
+    assert.equal(bulanWib(new Date("2026-01-10T05:00:00Z"), 28), "2025-12");
+  });
+
+  it("nilai di luar 1–28 jatuh ke 1", () => {
+    assert.equal(awalValid(29), 1);
+    assert.equal(awalValid(0), 1);
+    assert.equal(awalValid(28), 28);
+  });
+});
+
+describe("rentang bebas", () => {
+  it("dua tanggal WIB, keduanya inklusif", () => {
+    assert.deepEqual(batasRentangWib("2026-08-28", "2026-09-28"), {
+      from: "2026-08-27T17:00:00.000Z",
+      to: "2026-09-28T16:59:59.999Z",
+    });
+  });
+
+  it("dibaca dari URL; rentang terbalik atau tanggal rusak diabaikan", () => {
+    const sp = (q: string) => new URLSearchParams(q);
+    const p = bacaPeriode(sp("dari=2026-08-28&sampai=2026-09-28"), "2026-09", "tahunan");
+    assert.deepEqual(p.rentang, { dari: "2026-08-28", sampai: "2026-09-28" });
+    assert.equal(p.perTahun, false);
+    assert.equal(queryPeriode(p, "tahunan"), "dari=2026-08-28&sampai=2026-09-28");
+    assert.equal(bacaPeriode(sp("dari=2026-09-28&sampai=2026-08-28"), "2026-09", "tahunan").rentang, null);
+    assert.equal(bacaPeriode(sp("dari=2026-02-30&sampai=2026-03-01"), "2026-09", "tahunan").rentang, null);
+  });
+
+  it("setahun dengan awal 28 = 28 Jan s.d. 27 Jan tahun depan", () => {
+    const p = bacaPeriode(new URLSearchParams("tampilan=tahunan&tahun=2026"), "2026-09", "tahunan");
+    assert.deepEqual(batasPeriode(p, 28), {
+      from: "2026-01-27T17:00:00.000Z",
+      to: "2027-01-27T16:59:59.999Z",
+    });
   });
 });

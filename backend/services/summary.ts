@@ -19,8 +19,8 @@ export type Ringkasan = {
   pending_count: number;
 };
 
-export async function ringkasan(userId: string, monthKey?: string): Promise<Ringkasan> {
-  const bulan = batasBulan(monthKey);
+export async function ringkasan(userId: string, monthKey?: string, mulai = 1): Promise<Ringkasan> {
+  const bulan = batasBulan(monthKey, new Date(), mulai);
 
   const barisSaldo = await db
     .select({

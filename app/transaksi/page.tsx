@@ -22,6 +22,7 @@ import {
 import { formatRupiah, labelKategori } from "@/lib/format";
 import { NavPeriode, RingkasanPeriode } from "@/components/Periode";
 import {
+  bacaAwalBulan,
   bacaPeriode,
   batasBulanWib,
   bulanWib,
@@ -59,7 +60,8 @@ function TransaksiPage() {
   const sp = useSearchParams();
 
   // Dihitung sekali saat mount: jam dinding tidak boleh ikut menentukan render.
-  const [bulanIni] = useState(() => bulanWib());
+  const [awal] = useState(bacaAwalBulan);
+  const [bulanIni] = useState(() => bulanWib(new Date(), awal));
 
   const { bulan, tahun, perTahun: bulanan } = bacaPeriode(sp, bulanIni, "bulanan");
 
@@ -89,7 +91,7 @@ function TransaksiPage() {
     setItems(null);
 
     void (async () => {
-      const { from, to } = batasBulanWib(bulan);
+      const { from, to } = batasBulanWib(bulan, awal);
       const semua: Transaksi[] = [];
       let offset: number | null = 0;
 
@@ -114,7 +116,7 @@ function TransaksiPage() {
     return () => {
       aktif = false;
     };
-  }, [bulanan, bulan, saring]);
+  }, [bulanan, bulan, saring, awal]);
 
   // Bulanan: dua belas baris dari server.
   useEffect(() => {
@@ -124,7 +126,7 @@ function TransaksiPage() {
     setBulanBulan(null);
 
     void (async () => {
-      const r = await fetch(`/api/transactions/monthly?year=${tahun}`);
+      const r = await fetch(`/api/transactions/monthly?year=${tahun}&start_day=${awal}`);
       if (!aktif) return;
       if (r.status === 401) {
         setBelumLogin(true);
@@ -136,7 +138,7 @@ function TransaksiPage() {
     return () => {
       aktif = false;
     };
-  }, [bulanan, tahun]);
+  }, [bulanan, tahun, awal]);
 
   const buka = (q: string) => router.push(`/transaksi?${q}`);
 
@@ -163,7 +165,7 @@ function TransaksiPage() {
           }}
         >
           <NavPeriode
-            label={bulanan ? String(tahun) : labelBulan(bulan)}
+            label={bulanan ? String(tahun) : labelBulan(bulan, awal)}
             onMundur={() =>
               buka(bulanan ? `tampilan=bulanan&tahun=${tahun - 1}` : `bulan=${geserBulan(bulan, -1)}`)
             }
@@ -234,7 +236,7 @@ function TransaksiPage() {
           ) : items.length === 0 ? (
             <EmptyState
               icon="daftar"
-              title={`Belum ada transaksi di ${labelBulan(bulan)}.`}
+              title={`Belum ada transaksi di ${labelBulan(bulan, awal)}.`}
             />
           ) : (
             kelompokkanPerHari(items).map((h) => (

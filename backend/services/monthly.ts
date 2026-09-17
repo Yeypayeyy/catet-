@@ -4,14 +4,22 @@ import { and, eq, gte, isNull, lt, sql } from "drizzle-orm";
 import { db } from "@/backend/db";
 import { transactions } from "@/backend/db/schema";
 import { isiDuaBelasBulan, type MonthRow } from "@/backend/services/monthly-rows";
+import { batasTahun } from "@/backend/services/wib";
 
-// WIB tidak punya DST. Tahun dan bulan dihitung menurut jam Jakarta, supaya
-// transaksi 00:30 tanggal 1 tidak jatuh ke bulan sebelumnya.
-const WIB_MS = 7 * 60 * 60 * 1000;
-
-/** `categoryId` menyempitkan ke satu kategori — dipakai layar detail kategori di Statistik. */
-export async function monthlyTotals(userId: string, year: number, categoryId?: string): Promise<MonthRow[]> {
-  const bulan = sql<number>`extract(month from ${transactions.occurredAt} at time zone 'Asia/Jakarta')::int`;
+/**
+ * `categoryId` menyempitkan ke satu kategori — dipakai layar detail kategori di Statistik.
+ * `mulai` = tanggal awal bulan milik user (1–28).
+ */
+export async function monthlyTotals(
+  userId: string,
+  year: number,
+  categoryId?: string,
+  mulai = 1,
+): Promise<MonthRow[]> {
+  // Jam Jakarta, lalu dimundurkan (mulai - 1) hari: 27 Sep dengan mulai 28
+  // jatuh ke Agustus. Aman karena mulai paling besar 28.
+  const bulan = sql<number>`extract(month from (${transactions.occurredAt} at time zone 'Asia/Jakarta') - make_interval(days => ${mulai - 1}::int))::int`;
+  const { awal, akhir } = batasTahun(year, mulai);
 
   const rows = await db
     .select({
@@ -25,8 +33,8 @@ export async function monthlyTotals(userId: string, year: number, categoryId?: s
         eq(transactions.userId, userId),
         isNull(transactions.deletedAt),
         categoryId ? eq(transactions.categoryId, categoryId) : undefined,
-        gte(transactions.occurredAt, new Date(Date.UTC(year, 0, 1) - WIB_MS)),
-        lt(transactions.occurredAt, new Date(Date.UTC(year + 1, 0, 1) - WIB_MS)),
+        gte(transactions.occurredAt, awal),
+        lt(transactions.occurredAt, akhir),
       ),
     )
     .groupBy(bulan);

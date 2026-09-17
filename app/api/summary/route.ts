@@ -10,6 +10,8 @@ const Query = z.object({
     .string()
     .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Format bulan harus YYYY-MM")
     .optional(),
+  // Tanggal awal bulan milik user; lihat bacaAwalBulan di lib/periode.ts.
+  start_day: z.coerce.number().int().min(1).max(28).default(1),
 });
 
 export async function GET(request: Request) {
@@ -19,5 +21,5 @@ export async function GET(request: Request) {
   const parsed = Query.safeParse(Object.fromEntries(new URL(request.url).searchParams));
   if (!parsed.success) return fail(400, "INVALID_QUERY", z.prettifyError(parsed.error));
 
-  return Response.json(await ringkasan(userId, parsed.data.month));
+  return Response.json(await ringkasan(userId, parsed.data.month, parsed.data.start_day));
 }

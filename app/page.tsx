@@ -12,6 +12,7 @@ import { Icon } from "@/components/Icon";
 import { TransactionCard } from "@/components/TransactionCard";
 import { Amount, Bar, BottomNav, Button, EmptyState } from "@/components/ui";
 import { formatWaktu, labelKategori } from "@/lib/format";
+import { bacaAwalBulan } from "@/lib/periode";
 
 type Ringkasan = {
   balance: string;
@@ -42,7 +43,7 @@ export default function RingkasanPage() {
   const muat = useCallback(async () => {
     // Dikirim bersamaan: tiap request menunggu server sendiri-sendiri.
     const [r, rt, rc] = await Promise.all([
-      fetch("/api/summary"),
+      fetch(`/api/summary?start_day=${bacaAwalBulan()}`),
       fetch("/api/transactions?limit=3"),
       fetch("/api/categories"),
     ]);

@@ -9,9 +9,20 @@ import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { NavPeriode } from "@/components/Periode";
-import { Amount, BottomNav, Button, CategoryChip, EmptyState, ScreenHeader } from "@/components/ui";
+import { Amount, BottomNav, Button, CategoryChip, EmptyState, Input, ScreenHeader } from "@/components/ui";
 import { formatRupiah, labelKategori } from "@/lib/format";
-import { bacaPeriode, bulanWib, geserBulan, labelBulan } from "@/lib/periode";
+import {
+  bacaAwalBulan,
+  bacaPeriode,
+  batasPeriode,
+  bulanWib,
+  geserBulan,
+  labelBulan,
+  labelRentang,
+  queryPeriode,
+  tanggalValid,
+  tanggalWib,
+} from "@/lib/periode";
 import { potongIrisan, rasioNabung, type BarisKategori, type Irisan } from "@/lib/statistik";
 
 type Statistik = {
@@ -37,8 +48,11 @@ function StatistikPage() {
   const sp = useSearchParams();
 
   // Dihitung sekali saat mount: jam dinding tidak boleh ikut menentukan render.
-  const [bulanIni] = useState(() => bulanWib());
-  const { bulan, tahun, perTahun } = bacaPeriode(sp, bulanIni, "tahunan");
+  const [awal] = useState(bacaAwalBulan);
+  const [bulanIni] = useState(() => bulanWib(new Date(), awal));
+  const periode = bacaPeriode(sp, bulanIni, "tahunan");
+  const { bulan, tahun, perTahun, rentang } = periode;
+  const { from, to } = batasPeriode(periode, awal);
 
   const [jenis, setJenis] = useState<"debit" | "credit">("debit");
   const [data, setData] = useState<Statistik | null>(null);
@@ -51,7 +65,7 @@ function StatistikPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setData(null);
     void (async () => {
-      const r = await fetch(`/api/statistics?${perTahun ? `year=${tahun}` : `month=${bulan}`}`);
+      const r = await fetch(`/api/statistics?${new URLSearchParams({ from, to })}`);
       if (!aktif) return;
       if (r.status === 401) {
         setBelumLogin(true);
@@ -62,21 +76,30 @@ function StatistikPage() {
     return () => {
       aktif = false;
     };
-  }, [perTahun, tahun, bulan]);
+  }, [from, to]);
 
   useEffect(() => {
     let aktif = true;
     void (async () => {
-      const r = await fetch(`/api/transactions/monthly?year=${tahun}`);
+      const r = await fetch(`/api/transactions/monthly?year=${tahun}&start_day=${awal}`);
       if (aktif && r.ok) setTren((await r.json()).months);
     })();
     return () => {
       aktif = false;
     };
-  }, [tahun]);
+  }, [tahun, awal]);
 
   const buka = (q: string) => router.push(`/statistik?${q}`);
-  const label = perTahun ? String(tahun) : labelBulan(bulan);
+  const label = rentang
+    ? labelRentang(rentang.dari, rentang.sampai)
+    : perTahun
+      ? String(tahun)
+      : labelBulan(bulan, awal);
+
+  // Rentang yang diketik setengah jalan tidak dikirim; URL-nya tetap yang terakhir sah.
+  const ubahRentang = (dari: string, sampai: string) => {
+    if (tanggalValid(dari) && tanggalValid(sampai) && dari <= sampai) buka(`dari=${dari}&sampai=${sampai}`);
+  };
 
   const masuk = BigInt(data?.income ?? "0");
   const keluar = BigInt(data?.spending ?? "0");
@@ -92,9 +115,7 @@ function StatistikPage() {
       ? undefined
       : () =>
           router.push(
-            `/statistik/kategori?id=${x.id}&jenis=${jenis}&${
-              perTahun ? `tampilan=tahunan&tahun=${tahun}` : `bulan=${bulan}`
-            }`,
+            `/statistik/kategori?id=${x.id}&jenis=${jenis}&${queryPeriode(periode, "tahunan")}`,
           );
 
   if (belumLogin) {
@@ -133,26 +154,39 @@ function StatistikPage() {
           <ScreenHeader title="Statistik" />
         </div>
 
-        <NavPeriode
-          label={label}
-          onMundur={() =>
-            buka(perTahun ? `tampilan=tahunan&tahun=${tahun - 1}` : `bulan=${geserBulan(bulan, -1)}`)
-          }
-          onMaju={() =>
-            buka(perTahun ? `tampilan=tahunan&tahun=${tahun + 1}` : `bulan=${geserBulan(bulan, 1)}`)
-          }
-        />
+        {rentang ? (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
+            <Input label="Dari" type="date" value={rentang.dari} onChange={(v) => ubahRentang(v, rentang.sampai)} />
+            <Input label="Sampai" type="date" value={rentang.sampai} onChange={(v) => ubahRentang(rentang.dari, v)} />
+          </div>
+        ) : (
+          <NavPeriode
+            label={label}
+            onMundur={() =>
+              buka(perTahun ? `tampilan=tahunan&tahun=${tahun - 1}` : `bulan=${geserBulan(bulan, -1)}`)
+            }
+            onMaju={() =>
+              buka(perTahun ? `tampilan=tahunan&tahun=${tahun + 1}` : `bulan=${geserBulan(bulan, 1)}`)
+            }
+          />
+        )}
 
         <div style={{ display: "flex", gap: "var(--space-2)" }}>
           <CategoryChip
             label="Bulanan"
-            selected={!perTahun}
+            selected={!perTahun && !rentang}
             onSelect={() => buka(`bulan=${tahun === Number(bulan.slice(0, 4)) ? bulan : `${tahun}-01`}`)}
           />
           <CategoryChip
             label="Tahunan"
             selected={perTahun}
             onSelect={() => buka(`tampilan=tahunan&tahun=${tahun}`)}
+          />
+          <CategoryChip
+            label="Rentang"
+            selected={rentang !== null}
+            // Mulai dari periode yang sedang dilihat, lalu tinggal digeser.
+            onSelect={() => buka(`dari=${tanggalWib(from)}&sampai=${tanggalWib(to)}`)}
           />
         </div>
 
@@ -230,7 +264,7 @@ function StatistikPage() {
           ) : (
             <Tren
               bulan={tren}
-              terpilih={perTahun ? null : bulan}
+              terpilih={perTahun || rentang ? null : bulan}
               onPilih={(key) => buka(`bulan=${key}`)}
             />
           )}

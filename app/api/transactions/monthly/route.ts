@@ -14,6 +14,8 @@ const Query = z.object({
     .max(2100)
     .default(() => new Date(Date.now() + 7 * 60 * 60 * 1000).getUTCFullYear()),
   category_id: z.uuid().optional(),
+  // Tanggal awal bulan milik user; lihat bacaAwalBulan di lib/periode.ts.
+  start_day: z.coerce.number().int().min(1).max(28).default(1),
 });
 
 export async function GET(request: Request) {
@@ -23,6 +25,6 @@ export async function GET(request: Request) {
   const parsed = Query.safeParse(Object.fromEntries(new URL(request.url).searchParams));
   if (!parsed.success) return fail(400, "INVALID_QUERY", z.prettifyError(parsed.error));
 
-  const { year, category_id } = parsed.data;
-  return Response.json({ year, months: await monthlyTotals(userId, year, category_id) });
+  const { year, category_id, start_day } = parsed.data;
+  return Response.json({ year, months: await monthlyTotals(userId, year, category_id, start_day) });
 }

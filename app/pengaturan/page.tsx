@@ -16,6 +16,7 @@ import {
   WarningBanner,
 } from "@/components/ui";
 import { formatWaktu } from "@/lib/format";
+import { awalValid, bacaAwalBulan } from "@/lib/periode";
 
 // Android menyapa /api/health tiap enam jam. Lewat sehari tanpa kabar berarti
 // ada yang perlu dicek — biasanya izin notifikasi yang dicabut Android.
@@ -39,6 +40,7 @@ export default function PengaturanPage() {
   // menentukan hasil render.
   const [sepi, setSepi] = useState<Device[]>([]);
   const [gelap, setGelap] = useState(true);
+  const [awalBulan, setAwalBulan] = useState("1");
 
   const [nama, setNama] = useState("");
   const [tokenBaru, setTokenBaru] = useState<string | null>(null);
@@ -74,6 +76,7 @@ export default function PengaturanPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void muat();
     setGelap(document.documentElement.classList.contains("dark"));
+    setAwalBulan(String(bacaAwalBulan()));
   }, [muat]);
 
   function pilihTema(mode: "gelap" | "terang") {
@@ -83,6 +86,17 @@ export default function PengaturanPage() {
       localStorage.setItem("tema", mode);
     } catch {
       // Mode penyamaran atau storage dimatikan: temanya cuma tidak diingat.
+    }
+  }
+
+  function ubahAwalBulan(nilai: string) {
+    setAwalBulan(nilai);
+    const n = Number(nilai);
+    if (awalValid(n) !== n) return;
+    try {
+      localStorage.setItem("awalBulan", String(n));
+    } catch {
+      // Storage dimatikan: bulan tetap mulai tanggal 1.
     }
   }
 
@@ -189,6 +203,20 @@ export default function PengaturanPage() {
           <div style={{ display: "flex", gap: "var(--space-2)", paddingTop: "var(--space-2)" }}>
             <CategoryChip label="Gelap" selected={gelap} onSelect={() => pilihTema("gelap")} />
             <CategoryChip label="Terang" selected={!gelap} onSelect={() => pilihTema("terang")} />
+          </div>
+          <div style={{ paddingTop: "var(--space-4)" }}>
+            <Input
+              label="Bulan mulai tanggal"
+              type="number"
+              value={awalBulan}
+              onChange={ubahAwalBulan}
+              error={awalValid(Number(awalBulan)) === Number(awalBulan) ? undefined : "Isi 1 sampai 28."}
+              hint={
+                Number(awalBulan) > 1 && awalValid(Number(awalBulan)) === Number(awalBulan)
+                  ? `Bulan Agustus = ${awalBulan} Agu – ${Number(awalBulan) - 1} Sep.`
+                  : "Tanggal gajian. 1 = bulan kalender."
+              }
+            />
           </div>
         </Seksi>
 
