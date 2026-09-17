@@ -18,7 +18,11 @@ export async function monthlyTotals(
 ): Promise<MonthRow[]> {
   // Jam Jakarta, lalu dimundurkan (mulai - 1) hari: 27 Sep dengan mulai 28
   // jatuh ke Agustus. Aman karena mulai paling besar 28.
-  const bulan = sql<number>`extract(month from (${transactions.occurredAt} at time zone 'Asia/Jakarta') - make_interval(days => ${mulai - 1}::int))::int`;
+  // Angkanya ditulis langsung, bukan parameter: SELECT dan GROUP BY akan dapat
+  // $1 dan $5 yang berbeda, dan Postgres menolak karena ekspresinya tidak sama.
+  const mundur = Math.trunc(mulai) - 1;
+  if (mundur < 0 || mundur > 27) throw new Error("mulai harus 1-28");
+  const bulan = sql<number>`extract(month from (${transactions.occurredAt} at time zone 'Asia/Jakarta') - interval '${sql.raw(String(mundur))} days')::int`;
   const { awal, akhir } = batasTahun(year, mulai);
 
   const rows = await db
