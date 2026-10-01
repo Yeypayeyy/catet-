@@ -61,9 +61,15 @@ menyalinnya ke sini; yang di bawah cuma aturan pakainya.
 
 - **Warna lewat variabel, tidak pernah hex di komponen.** `--surface`,
   `--border`, `--ink` / `--ink-2` / `--ink-3`, `--accent`.
-- **Monokrom + satu aksen.** Warna lain hanya membawa makna: `--income`
-  (hijau) untuk pemasukan, `--warning` (kuning) hanya untuk banner,
-  `--danger` (merah) hanya untuk destruktif dan gagal.
+- **Pastel lembut + satu aksen ungu.** Latar bersemburat lilac, `--accent`
+  ungu untuk aksi utama dan status aktif, `--hero-*` untuk kartu utama
+  Ringkasan. Warna lain membawa makna: `--income` (hijau) untuk pemasukan,
+  `--warning` (peach/kuning) hanya untuk banner, `--danger` (merah) hanya
+  untuk destruktif dan gagal.
+- **Warna kategori** dari `--cat-1..7-{bg,ink,bar}`, slot dipilih
+  `warnaKategori(id)` di `lib/warna.ts` supaya satu kategori selalu satu
+  warna. Slot 8 netral untuk "Lainnya" dan belum dikategorikan. Tile pakai
+  `<CategoryIcon>`, batang pakai `<Bar color>`.
 - **Pengeluaran netral, tanpa tanda minus.** Pengeluaran jauh lebih sering,
   jadi tidak diwarnai. Pemasukan `+Rp…` hijau.
 - **Nominal `Rp10.000`** — tanpa spasi, tanpa desimal, ribuan titik, selalu
@@ -71,7 +77,7 @@ menyalinnya ke sini; yang di bawah cuma aturan pakainya.
 - **Dark mode via class `.dark` di `<html>`.** Dipasang dark-first di
   `layout.tsx`; togglenya di `/pengaturan`, pilihannya disimpan di
   `localStorage.tema` dan dilepas skrip kecil sebelum halaman digambar.
-- **Radius:** kartu 20, tombol/input 14, chip bulat penuh. Kartu = `--surface`
+- **Radius:** kartu 24, tombol/input 14, chip bulat penuh. Kartu = `--surface`
   + garis 1px, tanpa bayangan, tanpa gradient.
 - **Sentuh:** tinggi kontrol 48 (kecil 36), chip 40, target minimum 44.
 - **Ikon** digambar di `components/Icon.tsx` dari path Lucide yang disalin ke

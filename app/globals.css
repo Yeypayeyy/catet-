@@ -1,112 +1,119 @@
 @import "tailwindcss";
 
-/* Design token Catet!, dari Claude Design (Fase 2.1).
-   Sumber lengkap beserta guideline ada di sistem desainnya; yang di sini
-   adalah token yang benar-benar dipakai kode.
+/* Design token Catet!, arah "pastel lembut".
 
-   Dua penyesuaian dari berkas aslinya:
-   1. Font tidak diimpor dari Google Fonts — Geist sudah dimuat next/font di
-      layout.tsx, jadi --font-sans menunjuk ke variabelnya. Satu permintaan
-      jaringan lebih sedikit, dan tidak ada yang keluar ke pihak ketiga.
-   2. Dark mode dipasang sebagai class .dark di <html>. Belum ada togglenya;
-      app ini dark-first dan togglenya menyusul di layar Pengaturan. */
+   Latar bersemburat lilac, satu aksen ungu, dan palet pastel per kategori.
+   Font tidak diimpor dari Google Fonts — Geist sudah dimuat next/font di
+   layout.tsx. Dark mode dipasang sebagai class .dark di <html>. */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --bg: #f4f4f5;
+  --bg: #f5f3ff;
   --surface: #ffffff;
-  --surface-2: #f7f7f8;
-  --surface-pressed: #ededef;
-  --border: #e4e4e7;
-  --border-strong: #c9c9cf;
+  --surface-2: #f0eef8;
+  --surface-pressed: #e7e3f5;
+  --border: #ebe8f7;
+  --border-strong: #d3cee9;
 
-  --ink: #111114;
-  --ink-2: #55555e;
-  --ink-3: #85858e;
-  --ink-inverse: #fafafa;
+  --ink: #1e1b3a;
+  --ink-2: #4e4a72;
+  --ink-3: #6e6a94;
+  --ink-inverse: #fafaff;
 
-  --accent: oklch(0.52 0.15 240);
+  --accent: #5b4fc4;
   --accent-fg: #ffffff;
-  --accent-hover: oklch(0.46 0.15 240);
-  --accent-soft: oklch(0.94 0.03 240);
+  --accent-hover: #4c41ae;
+  --accent-soft: #e4deff;
+
+  /* Kartu utama di Ringkasan. */
+  --hero-bg: #e4deff;
+  --hero-ink: #241e5c;
+  --hero-ink-2: #544c9c;
+  --hero-chip: #f2efff;
 
   /* Pengeluaran jauh lebih sering daripada pemasukan, jadi sengaja netral dan
      tanpa tanda minus. Yang diberi warna cuma yang jarang: pemasukan. */
-  --income: #1e8a4a;
-  --income-bg: #e4f3ea;
+  --income: #11714f;
+  --income-bg: #daf4e8;
   --expense: var(--ink);
 
-  --warning: #9a6a12;
-  --warning-fg: #6b4a0b;
-  --warning-bg: #fbf2de;
-  --warning-border: #e8d3a4;
+  --warning: #9a6512;
+  --warning-fg: #6e430a;
+  --warning-bg: #fff0d9;
+  --warning-border: #f3d9ae;
 
   --danger: #be3a2e;
   --danger-bg: #fbe9e6;
 
-  --focus-ring: oklch(0.52 0.15 240 / 0.35);
-  --overlay: rgba(17, 17, 20, 0.5);
+  --focus-ring: rgba(91, 79, 196, 0.35);
+  --overlay: rgba(30, 27, 58, 0.45);
 
-  /* Palet kategori, HANYA untuk donat Statistik dan kotak penandanya.
-     Terang sama, rona dibedakan; urutannya melompat supaya irisan yang
-     bersebelahan tidak mirip. --chart-8 = "Lainnya", sengaja netral. */
-  --chart-1: oklch(0.6 0.13 250);
-  --chart-2: oklch(0.68 0.14 55);
-  --chart-3: oklch(0.62 0.11 170);
-  --chart-4: oklch(0.58 0.13 315);
-  --chart-5: oklch(0.72 0.13 95);
-  --chart-6: oklch(0.62 0.15 15);
-  --chart-7: oklch(0.64 0.1 210);
-  --chart-8: #a1a1aa;
+  /* Palet kategori. Tiap kategori dapat satu slot tetap dari id-nya
+     (lib/warna.ts): -bg untuk tile, -ink untuk isinya, -bar untuk batang dan
+     irisan donat. Slot 8 = "Lainnya" / belum dikategorikan, sengaja netral. */
+  --cat-1-bg: #daf4e8; --cat-1-ink: #12664a; --cat-1-bar: #3fbf8c;
+  --cat-2-bg: #ffe2ec; --cat-2-ink: #912a50; --cat-2-bar: #f07aa3;
+  --cat-3-bg: #dceaff; --cat-3-ink: #1d4e8f; --cat-3-bar: #6aa3f0;
+  --cat-4-bg: #ffebcf; --cat-4-ink: #7a4a0a; --cat-4-bar: #f2a945;
+  --cat-5-bg: #ece4ff; --cat-5-ink: #4b3699; --cat-5-bar: #9c84f0;
+  --cat-6-bg: #ffe4da; --cat-6-ink: #8c3418; --cat-6-bar: #f28b66;
+  --cat-7-bg: #d6f3f4; --cat-7-ink: #0f5e63; --cat-7-bar: #3db5bc;
+  --cat-8-bg: #eeedf3; --cat-8-ink: #55536b; --cat-8-bar: #b3b0c6;
 
   color-scheme: light;
 }
 
 .dark {
-  --bg: #0c0c0e;
-  --surface: #15151a;
-  --surface-2: #1d1d23;
-  --surface-pressed: #26262e;
-  --border: #26262e;
-  --border-strong: #3a3a45;
+  --bg: #13111d;
+  --surface: #1c1a2b;
+  --surface-2: #24213a;
+  --surface-pressed: #2d2a45;
+  --border: #2a2740;
+  --border-strong: #3d3958;
 
-  --ink: #f2f2f4;
-  --ink-2: #a3a3ad;
-  --ink-3: #6c6c76;
-  --ink-inverse: #0c0c0e;
+  --ink: #f1efff;
+  --ink-2: #c2bee0;
+  --ink-3: #8c87ad;
+  --ink-inverse: #13111d;
 
-  --accent: oklch(0.75 0.12 240);
-  --accent-fg: #0c0c0e;
-  --accent-hover: oklch(0.7 0.12 240);
-  --accent-soft: oklch(0.28 0.05 240);
+  --accent: #c9c0ff;
+  --accent-fg: #1e1b3a;
+  --accent-hover: #b7acff;
+  --accent-soft: #322b66;
 
-  --income: #4fcb7c;
-  --income-bg: #10281a;
+  --hero-bg: #2d2660;
+  --hero-ink: #f1efff;
+  --hero-ink-2: #bdb5f6;
+  --hero-chip: #3a3275;
+
+  --income: #7fe3b4;
+  --income-bg: #123a2c;
   --expense: var(--ink);
 
-  --warning: #e3b549;
-  --warning-fg: #f0cb6e;
-  --warning-bg: #262012;
-  --warning-border: #4a3e1c;
+  --warning: #f2b54d;
+  --warning-fg: #ffd592;
+  --warning-bg: #3a2b12;
+  --warning-border: #5a4420;
 
   --danger: #f0685c;
   --danger-bg: #2c1614;
 
-  --focus-ring: oklch(0.75 0.12 240 / 0.4);
+  --focus-ring: rgba(201, 192, 255, 0.4);
   --overlay: rgba(0, 0, 0, 0.6);
 
-  --chart-1: oklch(0.72 0.12 250);
-  --chart-2: oklch(0.78 0.13 55);
-  --chart-3: oklch(0.74 0.1 170);
-  --chart-4: oklch(0.7 0.12 315);
-  --chart-5: oklch(0.82 0.12 95);
-  --chart-6: oklch(0.72 0.14 15);
-  --chart-7: oklch(0.76 0.09 210);
-  --chart-8: #52525b;
+  --cat-1-bg: #123a2c; --cat-1-ink: #86e6be; --cat-1-bar: #4fcb97;
+  --cat-2-bg: #40182a; --cat-2-ink: #ffa3c4; --cat-2-bar: #f07aa3;
+  --cat-3-bg: #152d4d; --cat-3-ink: #a3c8ff; --cat-3-bar: #6aa3f0;
+  --cat-4-bg: #3d2c0f; --cat-4-ink: #ffcb75; --cat-4-bar: #f2a945;
+  --cat-5-bg: #2c2356; --cat-5-ink: #c9b8ff; --cat-5-bar: #9c84f0;
+  --cat-6-bg: #42200f; --cat-6-ink: #ffb396; --cat-6-bar: #f28b66;
+  --cat-7-bg: #0f3436; --cat-7-ink: #8ee3e8; --cat-7-bar: #3db5bc;
+  --cat-8-bg: #2a2838; --cat-8-ink: #b4b0cc; --cat-8-bar: #6c6885;
 
   color-scheme: dark;
 }
+
 
 :root {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -164,7 +171,7 @@
 
   --radius-sm: 8px;
   --radius-md: 14px;
-  --radius-lg: 20px;
+  --radius-lg: 24px;
   --radius-full: 999px;
 
   --touch-min: 44px;

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   // Dipakai sebagai PWA di home screen: tidak ada address bar, jadi warna
   // status bar diambil dari sini.
-  themeColor: "#0c0c0e",
+  themeColor: "#13111d",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -32,6 +32,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       // ada di layar Pengaturan; pilihan "terang" dilepas oleh skrip di bawah
       // sebelum halaman digambar, supaya tidak ada kedipan gelap dulu.
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      // Skrip tema sengaja mengubah class ini sebelum hydrate. Hanya berlaku
+      // untuk atribut <html> sendiri, bukan anak-anaknya.
+      suppressHydrationWarning
     >
       <head>
         <script

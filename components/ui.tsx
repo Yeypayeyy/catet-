@@ -11,6 +11,7 @@
 import { useId, useState, type CSSProperties, type ReactNode } from "react";
 import { Icon, type NamaIkon } from "@/components/Icon";
 import { formatRupiah, labelKategori } from "@/lib/format";
+import { warnaKategori } from "@/lib/warna";
 
 /* ---------- Amount ---------- */
 
@@ -903,7 +904,7 @@ export function BottomNav({
         bottom: 0,
         display: "grid",
         gridTemplateColumns: `repeat(${tujuan.length}, 1fr)`,
-        background: "var(--bg)",
+        background: "var(--surface)",
         borderTop: "1px solid var(--border)",
         // Bawahnya dilebihkan untuk gesture bar Android.
         padding: "var(--space-2) 0 var(--space-6)",
@@ -920,11 +921,30 @@ export function BottomNav({
             gap: 4,
             padding: "var(--space-1) 0",
             textDecoration: "none",
-            color: active === t.kunci ? "var(--accent)" : "var(--ink-3)",
+            color: active === t.kunci ? "var(--ink)" : "var(--ink-3)",
           }}
         >
-          <Icon name={t.ikon} size={24} />
-          <span style={{ fontSize: "var(--text-overline-size)", fontWeight: 500 }}>{t.label}</span>
+          <span
+            style={{
+              width: 56,
+              height: 30,
+              borderRadius: "var(--radius-full)",
+              background: active === t.kunci ? "var(--accent-soft)" : "transparent",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon name={t.ikon} size={22} />
+          </span>
+          <span
+            style={{
+              fontSize: "var(--text-overline-size)",
+              fontWeight: active === t.kunci ? 600 : 500,
+            }}
+          >
+            {t.label}
+          </span>
         </a>
       ))}
     </nav>
@@ -934,7 +954,16 @@ export function BottomNav({
 /* ---------- Bar proporsi ---------- */
 
 /** Batang perbandingan antar kategori. Panjangnya relatif ke yang terbesar. */
-export function Bar({ value, max }: { value: bigint; max: bigint }) {
+export function Bar({
+  value,
+  max,
+  color = "var(--accent)",
+}: {
+  value: bigint;
+  max: bigint;
+  /** Biasanya warnaKategori(id).bar. */
+  color?: string;
+}) {
   const persen = max > 0n ? Number((value * 1000n) / max) / 10 : 0;
   return (
     <div
@@ -949,10 +978,48 @@ export function Bar({ value, max }: { value: bigint; max: bigint }) {
         style={{
           width: `${persen}%`,
           height: "100%",
-          background: "var(--accent)",
+          background: color,
           borderRadius: 3,
         }}
       />
     </div>
+  );
+}
+
+/* ---------- Ikon kategori ---------- */
+
+/**
+ * Tile pastel berisi emoji kategori. Warnanya tetap per kategori (lib/warna.ts),
+ * jadi sama dengan batang di Ringkasan dan irisan donat di Statistik.
+ */
+export function CategoryIcon({
+  id,
+  icon,
+  size = 40,
+}: {
+  id: string | null;
+  icon: string | null;
+  size?: number;
+}) {
+  const w = warnaKategori(id);
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: size,
+        height: size,
+        flexShrink: 0,
+        borderRadius: Math.round(size * 0.3),
+        background: w.bg,
+        color: w.ink,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: Math.round(size * 0.48),
+        lineHeight: 1,
+      }}
+    >
+      {icon ?? <Icon name="kotak-masuk" size={Math.round(size * 0.5)} />}
+    </span>
   );
 }

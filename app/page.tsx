@@ -10,8 +10,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { TransactionCard } from "@/components/TransactionCard";
-import { Amount, Bar, BottomNav, Button, EmptyState } from "@/components/ui";
+import { Amount, Bar, BottomNav, Button, CategoryIcon, EmptyState } from "@/components/ui";
 import { formatWaktu, labelKategori } from "@/lib/format";
+import { warnaKategori } from "@/lib/warna";
 import { bacaAwalBulan } from "@/lib/periode";
 
 type Ringkasan = {
@@ -95,44 +96,108 @@ export default function RingkasanPage() {
     <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
       <div style={{ flex: 1, width: "100%", maxWidth: 480, marginInline: "auto" }}>
         <header style={{ padding: "var(--space-6) var(--page-x) var(--space-3)" }}>
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: -8 }}>
-            {/* Pengaturan masuk lewat sini, bukan lewat nav bawah: dibuka
-                sekali seminggu, bukan tiap hari. */}
-            <a href="/pengaturan" aria-label="Pengaturan" style={{ color: "var(--ink-3)", padding: 4 }}>
-              <Icon name="pengaturan" size={22} />
-            </a>
-          </div>
-          <div
-            style={{
-              fontSize: "var(--text-overline-size)",
-              lineHeight: "var(--text-overline-line)",
-              letterSpacing: "var(--text-overline-tracking)",
-              textTransform: "uppercase",
-              color: "var(--ink-3)",
-              fontWeight: 500,
-            }}
-          >
-            Sisa uang
-          </div>
-          <div style={{ marginTop: 6 }}>
-            <Amount value={data?.balance ?? "0"} size="xl" />
-          </div>
           <div
             style={{
               display: "flex",
-              flexWrap: "wrap",
-              gap: "var(--space-4) var(--space-6)",
-              marginTop: "var(--space-4)",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "var(--space-4)",
             }}
           >
-            {(data?.accounts ?? []).map((a) => (
-              <div key={a.id} style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <span style={{ fontSize: "var(--text-caption-size)", color: "var(--ink-3)" }}>
-                  {a.name}
-                </span>
-                <Amount value={a.balance} size="sm" />
+            <h1
+              style={{
+                margin: 0,
+                fontSize: 26,
+                lineHeight: "32px",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Ringkasan
+            </h1>
+            {/* Pengaturan masuk lewat sini, bukan lewat nav bawah: dibuka
+                sekali seminggu, bukan tiap hari. */}
+            <a
+              href="/pengaturan"
+              aria-label="Pengaturan"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: "var(--radius-md)",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                color: "var(--ink-2)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Icon name="pengaturan" size={20} />
+            </a>
+          </div>
+
+          <div
+            style={{
+              background: "var(--hero-bg)",
+              color: "var(--hero-ink)",
+              borderRadius: "var(--radius-lg)",
+              padding: "var(--space-5)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-4)",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <span
+                style={{
+                  fontSize: "var(--text-label-size)",
+                  fontWeight: 500,
+                  color: "var(--hero-ink-2)",
+                }}
+              >
+                Sisa uang
+              </span>
+              <span style={{ color: "var(--hero-ink)" }}>
+                <Amount value={data?.balance ?? "0"} size="xl" />
+              </span>
+            </div>
+            {(data?.accounts ?? []).length ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+                  gap: "var(--space-2)",
+                }}
+              >
+                {(data?.accounts ?? []).map((a) => (
+                  <div
+                    key={a.id}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      padding: "var(--space-2) var(--space-3)",
+                      borderRadius: "var(--radius-md)",
+                      background: "var(--hero-chip)",
+                      minWidth: 0,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "var(--text-caption-size)",
+                        color: "var(--hero-ink-2)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {a.name}
+                    </span>
+                    <Amount value={a.balance} size="sm" />
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : null}
           </div>
         </header>
 
@@ -151,19 +216,19 @@ export default function RingkasanPage() {
                 display: "flex",
                 alignItems: "center",
                 gap: "var(--space-3)",
-                background: "var(--accent-soft)",
+                background: "var(--warning-bg)",
                 border: "1px solid transparent",
                 borderRadius: "var(--radius-lg)",
                 padding: "var(--space-4) var(--card-x)",
-                color: "var(--ink)",
+                color: "var(--warning-fg)",
                 textDecoration: "none",
               }}
             >
-              <Icon name="kotak-masuk" size={22} color="var(--accent)" />
+              <Icon name="kotak-masuk" size={22} />
               <span style={{ flex: 1, fontWeight: 500 }}>
                 {data.pending_count} transaksi menunggu kategori
               </span>
-              <Icon name="panah-kanan" size={20} color="var(--ink-3)" />
+              <Icon name="panah-kanan" size={20} />
             </a>
           ) : null}
 
@@ -226,34 +291,45 @@ export default function RingkasanPage() {
                 {(data?.by_category ?? []).slice(0, 6).map((k) => (
                   <div
                     key={k.id ?? "kosong"}
-                    style={{ display: "flex", flexDirection: "column", gap: 6 }}
+                    style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}
                   >
+                    <CategoryIcon id={k.id} icon={k.icon} />
                     <div
                       style={{
+                        flex: 1,
+                        minWidth: 0,
                         display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "baseline",
-                        gap: "var(--space-3)",
+                        flexDirection: "column",
+                        gap: 6,
                       }}
                     >
-                      <span
+                      <div
                         style={{
-                          fontSize: "var(--text-label-size)",
-                          fontWeight: 500,
-                          minWidth: 0,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          // Yang belum dikategorikan diredupkan: ini bukan
-                          // kategori, cuma tumpukan yang belum dikerjakan.
-                          color: k.id ? "var(--ink)" : "var(--ink-3)",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "baseline",
+                          gap: "var(--space-3)",
                         }}
                       >
-                        {labelKategori(k)}
-                      </span>
-                      <Amount value={k.total} size="sm" />
+                        <span
+                          style={{
+                            fontSize: "var(--text-label-size)",
+                            fontWeight: 500,
+                            minWidth: 0,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            // Yang belum dikategorikan diredupkan: ini bukan
+                            // kategori, cuma tumpukan yang belum dikerjakan.
+                            color: k.id ? "var(--ink)" : "var(--ink-3)",
+                          }}
+                        >
+                          {k.name}
+                        </span>
+                        <Amount value={k.total} size="sm" />
+                      </div>
+                      <Bar value={BigInt(k.total)} max={maks} color={warnaKategori(k.id).bar} />
                     </div>
-                    <Bar value={BigInt(k.total)} max={maks} />
                   </div>
                 ))}
               </div>

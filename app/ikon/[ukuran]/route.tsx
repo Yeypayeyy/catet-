@@ -7,8 +7,8 @@
 import { ImageResponse } from "next/og";
 
 // Sesuai token: latar --bg gelap, huruf memakai --accent versi dark.
-const LATAR = "#0c0c0e";
-const AKSEN = "#70b0f0";
+const LATAR = "#13111d";
+const AKSEN = "#c9c0ff";
 
 const UKURAN = {
   "192": { sisi: 192, skala: 0.62 },

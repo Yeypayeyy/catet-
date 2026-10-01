@@ -17,9 +17,21 @@ export function Pwa() {
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      // Gagal mendaftar bukan hal fatal: app tetap jalan, cuma tidak punya
-      // salinan app shell saat offline.
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
+      if (process.env.NODE_ENV === "production") {
+        // Gagal mendaftar bukan hal fatal: app tetap jalan, cuma tidak punya
+        // salinan app shell saat offline.
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      } else {
+        // Di dev nama chunk /_next/static tidak ber-hash, jadi cache-first di
+        // sw.js menyajikan JS basi dan hydration gagal tiap pindah halaman.
+        // Lepas yang terlanjur terpasang beserta cache-nya.
+        void navigator.serviceWorker
+          .getRegistrations()
+          .then((rs) => Promise.all(rs.map((r) => r.unregister())));
+        void caches
+          ?.keys()
+          .then((ks) => Promise.all(ks.filter((k) => k.startsWith("catet-")).map((k) => caches.delete(k))));
+      }
     }
 
     const tangkap = (e: Event) => {

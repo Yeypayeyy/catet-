@@ -299,7 +299,7 @@ export default function PengaturanPage() {
               marginTop: "var(--space-4)",
             }}
           >
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <Input
                 label="Device baru"
                 placeholder="HP Farrel"

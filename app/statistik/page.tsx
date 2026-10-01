@@ -23,6 +23,7 @@ import {
   tanggalValid,
   tanggalWib,
 } from "@/lib/periode";
+import { warnaKategori } from "@/lib/warna";
 import { potongIrisan, rasioNabung, type BarisKategori, type Irisan } from "@/lib/statistik";
 
 type Statistik = {
@@ -215,13 +216,13 @@ function StatistikPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
               <Donat irisan={irisan} total={totalJenis} jenis={jenis} />
               <div style={{ display: "flex", flexDirection: "column" }}>
-                {irisan.map((x, i) =>
+                {irisan.map((x) =>
                   x.id === "lainnya" ? (
                     <Fragment key={x.id}>
                       {/* Lainnya dibuka di tempat: isinya kategori di luar tujuh teratas. */}
                       <BarisIrisan
                         x={x}
-                        warna={warnaIrisan(x, i)}
+                        warna={warnaIrisan(x)}
                         jenis={jenis}
                         terbuka={bukaLainnya}
                         onClick={() => setBukaLainnya((b) => !b)}
@@ -231,7 +232,7 @@ function StatistikPage() {
                             <BarisIrisan
                               key={y.id}
                               x={y}
-                              warna="var(--chart-8)"
+                              warna="var(--cat-8-bar)"
                               jenis={jenis}
                               menjorok
                               onClick={keDetail(y)}
@@ -240,7 +241,7 @@ function StatistikPage() {
                         : null}
                     </Fragment>
                   ) : (
-                    <BarisIrisan key={x.id} x={x} warna={warnaIrisan(x, i)} jenis={jenis} onClick={keDetail(x)} />
+                    <BarisIrisan key={x.id} x={x} warna={warnaIrisan(x)} jenis={jenis} onClick={keDetail(x)} />
                   ),
                 )}
               </div>
@@ -287,9 +288,9 @@ function Memuat() {
   return <p style={{ margin: 0, color: "var(--ink-3)", fontSize: "var(--text-label-size)" }}>Memuat…</p>;
 }
 
-/** Tujuh warna untuk tujuh irisan teratas; "Lainnya" selalu netral. */
-function warnaIrisan(x: Irisan, i: number) {
-  return x.id === "lainnya" ? "var(--chart-8)" : `var(--chart-${i + 1})`;
+/** Warna tetap per kategori, sama dengan tile di Ringkasan; "Lainnya" netral. */
+function warnaIrisan(x: Irisan) {
+  return warnaKategori(x.id).bar;
 }
 
 function KartuAngka({ judul, teks, warna }: { judul: string; teks: string; warna: string }) {
@@ -338,7 +339,7 @@ function Donat({ irisan, total, jenis }: { irisan: Irisan[]; total: bigint; jeni
               cy={100}
               r={r}
               fill="none"
-              stroke={warnaIrisan(x, i)}
+              stroke={warnaIrisan(x)}
               strokeWidth={28}
               strokeDasharray={`${panjang} ${keliling - panjang}`}
               strokeDashoffset={-awal[i]}

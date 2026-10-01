@@ -9,7 +9,16 @@
 import { useEffect, useState } from "react";
 import { TransactionCard } from "@/components/TransactionCard";
 import { labelKategori } from "@/lib/format";
-import { Amount, Button, CategoryChip, EmptyState, Input, WarningBanner } from "@/components/ui";
+import {
+  Amount,
+  Bar,
+  Button,
+  CategoryChip,
+  CategoryIcon,
+  EmptyState,
+  Input,
+  WarningBanner,
+} from "@/components/ui";
 
 const SARAN = [
   { id: "1", name: "Makan & Minum", icon: "🍜" },
@@ -79,6 +88,42 @@ export default function ShowcasePage() {
             />
           ))}
           <CategoryChip label="Lainnya" />
+        </div>
+      </Bagian>
+
+      <Bagian judul="Warna kategori">
+        {/* Delapan slot: tujuh warna dan satu netral. Pastikan isi tile
+            terbaca dan batangnya kelihatan di kedua tema. */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+            <div key={n} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+              <span
+                aria-hidden
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  background: `var(--cat-${n}-bg)`,
+                  color: `var(--cat-${n}-ink)`,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 600,
+                }}
+              >
+                {n}
+              </span>
+              <div style={{ flex: 1 }}>
+                <Bar value={BigInt(9 - n)} max={8n} color={`var(--cat-${n}-bar)`} />
+              </div>
+            </div>
+          ))}
+          <div style={{ display: "flex", gap: "var(--space-2)" }}>
+            <CategoryIcon id="makan" icon="🍜" />
+            <CategoryIcon id="belanja" icon="🛒" />
+            <CategoryIcon id="transport" icon="🚌" />
+            <CategoryIcon id={null} icon={null} />
+          </div>
         </div>
       </Bagian>
 
