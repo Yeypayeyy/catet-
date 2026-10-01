@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Icon } from "@/components/Icon";
-import { Amount, Button } from "@/components/ui";
+import { Amount, Button, CategoryIcon } from "@/components/ui";
 
 export type SaranKategori = { id: string; name: string; icon: string | null };
 
@@ -24,6 +24,7 @@ export function TransactionCard({
   title,
   meta,
   category,
+  kategori,
   onOpen,
   onHapus,
   pending = false,
@@ -36,6 +37,8 @@ export function TransactionCard({
   /** Baris kecil: waktu, lalu asal transaksinya. */
   meta?: string | null;
   category?: string | null;
+  /** Kategori lengkap untuk ikon bulat di kiri. null = belum dikategorikan. */
+  kategori?: { id: string; icon: string | null; name: string } | null;
   onOpen?: () => void;
   /** Tombol sampah di samping "Kategori". */
   onHapus?: () => void;
@@ -85,11 +88,18 @@ export function TransactionCard({
           ...kartu,
           display: "flex",
           alignItems: "center",
-          gap: "var(--space-4)",
+          gap: "var(--space-3)",
           minHeight: 72,
           cursor: onClick ? "pointer" : "default",
         }}
       >
+        {kategori !== undefined ? (
+          <CategoryIcon
+            id={kategori?.id ?? null}
+            icon={kategori?.icon ?? null}
+            name={kategori?.name ?? ""}
+          />
+        ) : null}
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
           <div style={barisJudul}>{title || category}</div>
           <div style={barisMeta}>

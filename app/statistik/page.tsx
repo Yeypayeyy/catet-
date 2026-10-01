@@ -9,8 +9,17 @@ import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { NavPeriode } from "@/components/Periode";
-import { Amount, BottomNav, Button, CategoryChip, EmptyState, Input, ScreenHeader } from "@/components/ui";
-import { formatRupiah, labelKategori } from "@/lib/format";
+import {
+  Amount,
+  BottomNav,
+  Button,
+  CategoryChip,
+  CategoryIcon,
+  EmptyState,
+  Input,
+  ScreenHeader,
+} from "@/components/ui";
+import { formatRupiah } from "@/lib/format";
 import {
   bacaAwalBulan,
   bacaPeriode,
@@ -23,7 +32,7 @@ import {
   tanggalValid,
   tanggalWib,
 } from "@/lib/periode";
-import { warnaKategori } from "@/lib/warna";
+import { catatUrutanKategori, warnaKategori } from "@/lib/warna";
 import { potongIrisan, rasioNabung, type BarisKategori, type Irisan } from "@/lib/statistik";
 
 type Statistik = {
@@ -66,8 +75,14 @@ function StatistikPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setData(null);
     void (async () => {
-      const r = await fetch(`/api/statistics?${new URLSearchParams({ from, to })}`);
+      // Daftar kategori ikut dimuat cuma untuk urutannya: itu yang menentukan
+      // warna irisan, supaya sama dengan Ringkasan dan Transaksi.
+      const [r, rk] = await Promise.all([
+        fetch(`/api/statistics?${new URLSearchParams({ from, to })}`),
+        fetch("/api/categories"),
+      ]);
       if (!aktif) return;
+      if (rk.ok) catatUrutanKategori((await rk.json()).items ?? []);
       if (r.status === 401) {
         setBelumLogin(true);
         return;
@@ -193,7 +208,7 @@ function StatistikPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--card-gap)" }}>
           <KartuAngka judul="Pemasukan" teks={`+${formatRupiah(masuk)}`} warna="var(--income)" />
-          <KartuAngka judul="Pengeluaran" teks={formatRupiah(keluar)} warna="var(--danger)" />
+          <KartuAngka judul="Pengeluaran" teks={formatRupiah(keluar)} warna="var(--ink)" />
           <KartuAngka judul="Arus kas bersih" teks={formatRupiah(masuk - keluar)} warna="var(--ink)" />
           <KartuAngka judul="Rasio nabung" teks={rasioNabung(masuk, keluar)} warna="var(--ink)" />
         </div>
@@ -222,7 +237,6 @@ function StatistikPage() {
                       {/* Lainnya dibuka di tempat: isinya kategori di luar tujuh teratas. */}
                       <BarisIrisan
                         x={x}
-                        warna={warnaIrisan(x)}
                         jenis={jenis}
                         terbuka={bukaLainnya}
                         onClick={() => setBukaLainnya((b) => !b)}
@@ -232,7 +246,6 @@ function StatistikPage() {
                             <BarisIrisan
                               key={y.id}
                               x={y}
-                              warna="var(--cat-8-bar)"
                               jenis={jenis}
                               menjorok
                               onClick={keDetail(y)}
@@ -241,7 +254,7 @@ function StatistikPage() {
                         : null}
                     </Fragment>
                   ) : (
-                    <BarisIrisan key={x.id} x={x} warna={warnaIrisan(x)} jenis={jenis} onClick={keDetail(x)} />
+                    <BarisIrisan key={x.id} x={x} jenis={jenis} onClick={keDetail(x)} />
                   ),
                 )}
               </div>
@@ -367,14 +380,12 @@ function Donat({ irisan, total, jenis }: { irisan: Irisan[]; total: bigint; jeni
 
 function BarisIrisan({
   x,
-  warna,
   jenis,
   onClick,
   terbuka,
   menjorok,
 }: {
   x: Irisan;
-  warna: string;
   jenis: "debit" | "credit";
   onClick?: () => void;
   /** Hanya untuk baris Lainnya: ada isinya yang bisa dibuka. */
@@ -394,7 +405,7 @@ function BarisIrisan({
         alignItems: "center",
         gap: "var(--space-3)",
         width: "100%",
-        minHeight: 44,
+        minHeight: 52,
         paddingBlock: 0,
         paddingRight: 0,
         background: "transparent",
@@ -406,7 +417,8 @@ function BarisIrisan({
         cursor: onClick ? "pointer" : "default",
       }}
     >
-      <span style={{ width: 10, height: 10, borderRadius: 3, background: warna, flex: "none" }} />
+      {/* "belum" = transaksi tanpa kategori: ikon kotak masuk, sama dengan Ringkasan. */}
+      <CategoryIcon id={x.id === "belum" ? null : x.id} icon={x.icon} name={x.name} size={32} />
       <span
         style={{
           flex: 1,
@@ -418,7 +430,7 @@ function BarisIrisan({
           color: x.id === "belum" || x.id === "lainnya" ? "var(--ink-2)" : "var(--ink)",
         }}
       >
-        {x.id === "lainnya" ? x.name : labelKategori(x)}
+        {x.name}
       </span>
       {terbuka !== undefined ? (
         <span
@@ -484,7 +496,7 @@ function Tren({
         >
           <span style={{ height: 100, width: "100%", display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 2 }}>
             <span style={{ width: "40%", height: `${tinggi(m.income)}%`, background: "var(--income)", borderRadius: 2 }} />
-            <span style={{ width: "40%", height: `${tinggi(m.spending)}%`, background: "var(--danger)", borderRadius: 2 }} />
+            <span style={{ width: "40%", height: `${tinggi(m.spending)}%`, background: "var(--ink-3)", borderRadius: 2 }} />
           </span>
           <span
             style={{

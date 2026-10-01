@@ -11,8 +11,8 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { TransactionCard } from "@/components/TransactionCard";
 import { Amount, Bar, BottomNav, Button, CategoryIcon, EmptyState } from "@/components/ui";
-import { formatWaktu, labelKategori } from "@/lib/format";
-import { warnaKategori } from "@/lib/warna";
+import { formatWaktu } from "@/lib/format";
+import { catatUrutanKategori, warnaKategori } from "@/lib/warna";
 import { bacaAwalBulan } from "@/lib/periode";
 
 type Ringkasan = {
@@ -22,6 +22,8 @@ type Ringkasan = {
   by_category: { id: string | null; name: string; icon: string | null; total: string }[];
   pending_count: number;
 };
+
+type Kategori = { id: string; name: string; icon: string | null };
 
 type Transaksi = {
   id: string;
@@ -38,7 +40,7 @@ export default function RingkasanPage() {
   const router = useRouter();
   const [data, setData] = useState<Ringkasan | null>(null);
   const [terakhir, setTerakhir] = useState<Transaksi[]>([]);
-  const [kategoriNama, setKategoriNama] = useState<Record<string, string>>({});
+  const [petaKategori, setPetaKategori] = useState<Record<string, Kategori>>({});
   const [belumLogin, setBelumLogin] = useState(false);
 
   const muat = useCallback(async () => {
@@ -52,15 +54,17 @@ export default function RingkasanPage() {
       setBelumLogin(true);
       return;
     }
+    // Kategori dulu: urutannya menentukan warna, jadi harus tercatat sebelum
+    // ringkasan pertama kali digambar.
+    if (rc.ok) {
+      const items: Kategori[] = (await rc.json()).items ?? [];
+      catatUrutanKategori(items);
+      setPetaKategori(Object.fromEntries(items.map((c) => [c.id, c])));
+    }
+
     setData(await r.json());
 
     if (rt.ok) setTerakhir((await rt.json()).items ?? []);
-
-    if (rc.ok) {
-      const items: { id: string; name: string; icon: string | null }[] =
-        (await rc.json()).items ?? [];
-      setKategoriNama(Object.fromEntries(items.map((c) => [c.id, labelKategori(c)])));
-    }
   }, []);
 
   useEffect(() => {
@@ -327,7 +331,7 @@ export default function RingkasanPage() {
                     key={k.id ?? "kosong"}
                     style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}
                   >
-                    <CategoryIcon id={k.id} icon={k.icon} />
+                    <CategoryIcon id={k.id} icon={k.icon} name={k.name} />
                     <div
                       style={{
                         flex: 1,
@@ -408,8 +412,9 @@ export default function RingkasanPage() {
                   title={t.note ?? t.merchant}
                   meta={[formatWaktu(t.occurred_at), t.bank_category].filter(Boolean).join(" · ")}
                   category={
-                    t.category_id ? (kategoriNama[t.category_id] ?? "—") : "Belum dikategorikan"
+                    t.category_id ? (petaKategori[t.category_id]?.name ?? "—") : "Belum dikategorikan"
                   }
+                  kategori={t.category_id ? (petaKategori[t.category_id] ?? null) : null}
                   onClick={() => router.push(`/transaksi/${t.id}`)}
                 />
               ))}

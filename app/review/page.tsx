@@ -22,7 +22,8 @@ import {
   Sheet,
   WarningBanner,
 } from "@/components/ui";
-import { formatWaktu, labelKategori } from "@/lib/format";
+import { formatWaktu } from "@/lib/format";
+import { catatUrutanKategori } from "@/lib/warna";
 
 type Transaksi = {
   id: string;
@@ -69,7 +70,11 @@ export default function ReviewPage() {
     const data = await r.json();
     setAntrian(data.items ?? []);
 
-    if (rc.ok) setKategori((await rc.json()).items ?? []);
+    if (rc.ok) {
+      const items: Kategori[] = (await rc.json()).items ?? [];
+      catatUrutanKategori(items);
+      setKategori(items);
+    }
   }, []);
 
   useEffect(() => {
@@ -273,7 +278,8 @@ export default function ReviewPage() {
                   {saran.map((c) => (
                     <CategoryChip
                       key={c.id}
-                      label={labelKategori(c)}
+                      label={c.name}
+                      kategori={c}
                       suggested
                       selected={dipilih === c.id}
                       onSelect={() => setDipilih(c.id)}

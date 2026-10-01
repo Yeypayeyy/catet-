@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { slotKategori } from "./warna.ts";
+import { catatUrutanKategori, slotKategori } from "./warna.ts";
 
 describe("slotKategori", () => {
   it("stabil dan selalu di 1–7 untuk kategori sungguhan", () => {
@@ -10,6 +10,16 @@ describe("slotKategori", () => {
       const s = slotKategori(`kategori-${i}`);
       assert.ok(s >= 1 && s <= 7, `slot ${s}`);
     }
+  });
+
+  it("setelah urutan dicatat, slot dibagi berurutan tanpa kembar", () => {
+    catatUrutanKategori(["a", "b", "c", "d", "e", "f", "g", "h"].map((id) => ({ id })));
+    assert.deepEqual(
+      ["a", "b", "c", "d", "e", "f", "g"].map(slotKategori),
+      [1, 2, 3, 4, 5, 6, 7],
+    );
+    // Kategori kedelapan berputar ke slot pertama.
+    assert.equal(slotKategori("h"), 1);
   });
 
   it("tanpa kategori dan Lainnya jatuh ke slot netral", () => {

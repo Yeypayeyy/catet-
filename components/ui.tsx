@@ -10,7 +10,8 @@
 
 import { useId, useState, type CSSProperties, type ReactNode } from "react";
 import { Icon, type NamaIkon } from "@/components/Icon";
-import { formatRupiah, labelKategori } from "@/lib/format";
+import { formatRupiah } from "@/lib/format";
+import { ikonKategori } from "@/lib/ikon-kategori";
 import { warnaKategori } from "@/lib/warna";
 
 /* ---------- Amount ---------- */
@@ -166,6 +167,7 @@ export function CategoryChip({
   count,
   onSelect,
   disabled = false,
+  kategori,
 }: {
   label: string;
   selected?: boolean;
@@ -173,6 +175,8 @@ export function CategoryChip({
   count?: number;
   onSelect?: () => void;
   disabled?: boolean;
+  /** Kalau chip mewakili kategori: ikon bulatnya tampil di depan label. */
+  kategori?: { id: string | null; icon: string | null; name: string };
 }) {
   const [ditekan, setDitekan] = useState(false);
 
@@ -190,7 +194,7 @@ export function CategoryChip({
         alignItems: "center",
         gap: "var(--space-2)",
         height: "var(--chip-h)",
-        padding: "0 var(--space-4)",
+        padding: kategori ? "0 var(--space-4) 0 var(--space-1)" : "0 var(--space-4)",
         borderRadius: "var(--radius-full)",
         background: selected ? "var(--accent)" : ditekan ? "var(--accent-soft)" : "var(--surface-2)",
         color: selected ? "var(--accent-fg)" : "var(--ink)",
@@ -209,6 +213,7 @@ export function CategoryChip({
           "background var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out)",
       }}
     >
+      {kategori ? <CategoryIcon {...kategori} size={30} /> : null}
       {label}
       {count != null ? (
         <span
@@ -294,7 +299,7 @@ export function CategoryGrid({
               aria-pressed={dipilih}
               onClick={() => onPilih(c.id)}
               style={{
-                minHeight: 56,
+                minHeight: 76,
                 padding: "var(--space-2)",
                 background: dipilih ? "var(--accent-soft)" : "var(--surface)",
                 color: dipilih ? "var(--accent)" : "var(--ink)",
@@ -307,14 +312,29 @@ export function CategoryGrid({
                 cursor: "pointer",
                 opacity: c.hidden ? 0.5 : 1,
                 WebkitTapHighlightColor: "transparent",
-                // Nama panjang ("Keperluan kuliah") boleh dua baris, lalu dipotong.
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
               }}
             >
-              {labelKategori(c)}
+              <span
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "var(--space-1)",
+                }}
+              >
+                <CategoryIcon id={c.id} icon={c.icon} name={c.name} size={32} />
+                <span
+                  style={{
+                    // Nama panjang ("Keperluan kuliah") boleh dua baris, lalu dipotong.
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {c.name}
+                </span>
+              </span>
             </button>
           );
         })}
@@ -993,19 +1013,24 @@ export function Bar({
 /* ---------- Ikon kategori ---------- */
 
 /**
- * Tile bulat berwarna solid berisi emoji kategori. Warnanya tetap per kategori (lib/warna.ts),
- * jadi sama dengan batang di Ringkasan dan irisan donat di Statistik.
+ * Lingkaran warna solid berisi ikon garis kategori. Warnanya tetap per
+ * kategori (lib/warna.ts) dan ikonnya dari emoji kategori (lib/ikon-kategori.ts),
+ * jadi tampilannya sama di semua tab. Emoji yang tidak dikenal tampil apa
+ * adanya; yang belum dikategorikan (id null) memakai ikon kotak masuk.
  */
 export function CategoryIcon({
   id,
   icon,
+  name = "",
   size = 40,
 }: {
   id: string | null;
   icon: string | null;
+  name?: string;
   size?: number;
 }) {
   const w = warnaKategori(id);
+  const ikon = id === null ? "kotak-masuk" : ikonKategori(icon, name);
   return (
     <span
       aria-hidden
@@ -1023,7 +1048,11 @@ export function CategoryIcon({
         lineHeight: 1,
       }}
     >
-      {icon ?? <Icon name="kotak-masuk" size={Math.round(size * 0.5)} />}
+      {ikon ? (
+        <Icon name={ikon} size={Math.round(size * 0.5)} style={{ strokeWidth: 2 }} />
+      ) : (
+        icon
+      )}
     </span>
   );
 }

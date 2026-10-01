@@ -41,13 +41,13 @@ export function NavPeriode({
 }
 
 /**
- * Tiga angka periode. Satu-satunya tempat pengeluaran diberi warna — daftar di
- * bawahnya tetap netral, supaya layar tidak merah semua.
+ * Tiga angka periode. Pengeluaran netral seperti di tempat lain; merah hanya
+ * untuk destruktif dan gagal.
  */
 export function RingkasanPeriode({ masuk, keluar }: { masuk: bigint; keluar: bigint }) {
   const kolom = [
     { label: "Pemasukan", teks: `+${formatRupiah(masuk)}`, warna: "var(--income)" },
-    { label: "Pengeluaran", teks: formatRupiah(keluar), warna: "var(--danger)" },
+    { label: "Pengeluaran", teks: formatRupiah(keluar), warna: "var(--ink)" },
     { label: "Selisih", teks: formatRupiah(masuk - keluar), warna: "var(--ink)" },
   ];
 

@@ -8,9 +8,9 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { catatUrutanKategori, warnaKategori } from "@/lib/warna";
 import { NavPeriode } from "@/components/Periode";
 import { Amount, EmptyState, ScreenHeader } from "@/components/ui";
-import { labelKategori } from "@/lib/format";
 import {
   bacaAwalBulan,
   bacaPeriode,
@@ -64,8 +64,10 @@ function DetailKategori() {
     void (async () => {
       const [rk, ra] = await Promise.all([fetch("/api/categories"), fetch("/api/accounts")]);
       if (rk.ok) {
-        const k = ((await rk.json()).items ?? []).find((c: { id: string }) => c.id === id);
-        if (k) setJudul(labelKategori(k));
+        const semua = (await rk.json()).items ?? [];
+        catatUrutanKategori(semua);
+        const k = semua.find((c: { id: string }) => c.id === id);
+        if (k) setJudul(k.name);
       }
       if (ra.ok) {
         const akun: { id: string; name: string }[] = (await ra.json()).items ?? [];
@@ -152,6 +154,7 @@ function DetailKategori() {
               <Tren
                 bulan={tren}
                 jenis={jenis}
+                warna={warnaKategori(id === "belum" ? null : id).bar}
                 terpilih={perTahun || rentang ? null : bulan}
                 onPilih={(key) => buka(`bulan=${key}`)}
               />
@@ -239,11 +242,14 @@ function Memuat() {
 function Tren({
   bulan,
   jenis,
+  warna,
   terpilih,
   onPilih,
 }: {
   bulan: Bulan[];
   jenis: "debit" | "credit";
+  /** Warna kategorinya sendiri, sama dengan ikon dan irisan donatnya. */
+  warna: string;
   terpilih: string | null;
   onPilih: (key: string) => void;
 }) {
@@ -277,7 +283,7 @@ function Tren({
               style={{
                 width: "60%",
                 height: `${tinggi(nilai[i])}%`,
-                background: jenis === "debit" ? "var(--danger)" : "var(--income)",
+                background: warna,
                 borderRadius: 2,
               }}
             />

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui";
 import { formatRupiah, fromInputLocal, hanyaDigit, toInputLocal } from "@/lib/format";
 import { waktuAwal } from "@/lib/periode";
+import { catatUrutanKategori } from "@/lib/warna";
 
 export type TransaksiAwal = {
   id: string;
@@ -81,7 +82,11 @@ export function TransactionForm({
       setAkun(daftarAkun);
       // Transaksi baru: akun pertama dipakai kalau user tidak memilih.
       setAkunId((sekarang) => sekarang || (daftarAkun[0]?.id ?? ""));
-      if (rk.ok) setKategori((await rk.json()).items ?? []);
+      if (rk.ok) {
+        const items = (await rk.json()).items ?? [];
+        catatUrutanKategori(items);
+        setKategori(items);
+      }
     })();
   }, []);
 

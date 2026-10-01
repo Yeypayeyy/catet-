@@ -16,6 +16,7 @@ import {
   Amount,
   Button,
   CategoryChip,
+  CategoryIcon,
   EmptyState,
   Input,
   Row,
@@ -24,8 +25,8 @@ import {
   Sheet,
   WarningBanner,
 } from "@/components/ui";
-import { labelKategori } from "@/lib/format";
 import { pindahkan } from "@/lib/urutan";
+import { catatUrutanKategori } from "@/lib/warna";
 
 type Jenis = "expense" | "income";
 type Kategori = {
@@ -81,7 +82,9 @@ function KategoriPage() {
       setAkun([]);
       return;
     }
-    setKategori(rk.ok ? ((await rk.json()).items ?? []) : []);
+    const items = rk.ok ? ((await rk.json()).items ?? []) : [];
+    catatUrutanKategori(items);
+    setKategori(items);
     setAkun(ra.ok ? ((await ra.json()).items ?? []) : []);
   }, []);
 
@@ -272,7 +275,21 @@ function KategoriPage() {
                 {tersembunyi.map((c) => (
                   <Row
                     key={c.id}
-                    title={<span style={{ color: "var(--ink-3)" }}>{labelKategori(c)}</span>}
+                    title={
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "var(--space-3)",
+                          color: "var(--ink-3)",
+                        }}
+                      >
+                        <span style={{ opacity: 0.5, display: "inline-flex" }}>
+                          <CategoryIcon id={c.id} icon={c.icon} name={c.name} size={32} />
+                        </span>
+                        {c.name}
+                      </span>
+                    }
                     description="Tekan untuk memakai lagi"
                     onClick={() => void sembunyikan(c.id, false)}
                     right={<Icon name="tambah" size={18} color="var(--ink-3)" />}
@@ -457,6 +474,7 @@ function DaftarSeret({
             >
               <Icon name="pegangan" size={20} />
             </span>
+            <CategoryIcon id={c.id} icon={c.icon} name={c.name} size={32} />
             <span
               style={{
                 flex: 1,
@@ -468,7 +486,7 @@ function DaftarSeret({
                 whiteSpace: "nowrap",
               }}
             >
-              {labelKategori(c)}
+              {c.name}
             </span>
             <button
               type="button"

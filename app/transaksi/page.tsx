@@ -15,11 +15,12 @@ import {
   BottomNav,
   Button,
   CategoryChip,
+  CategoryIcon,
   ChipRow,
   EmptyState,
   ScreenHeader,
 } from "@/components/ui";
-import { formatRupiah, labelKategori } from "@/lib/format";
+import { formatRupiah } from "@/lib/format";
 import { NavPeriode, RingkasanPeriode } from "@/components/Periode";
 import {
   bacaAwalBulan,
@@ -31,6 +32,7 @@ import {
   kelompokkanPerHari,
   labelBulan,
 } from "@/lib/periode";
+import { catatUrutanKategori } from "@/lib/warna";
 
 type Transaksi = {
   id: string;
@@ -75,7 +77,11 @@ function TransaksiPage() {
   useEffect(() => {
     void (async () => {
       const [rk, ra] = await Promise.all([fetch("/api/categories"), fetch("/api/accounts")]);
-      if (rk.ok) setKategori((await rk.json()).items ?? []);
+      if (rk.ok) {
+        const items: Kategori[] = (await rk.json()).items ?? [];
+        catatUrutanKategori(items);
+        setKategori(items);
+      }
       if (ra.ok) {
         const akun: { id: string; name: string }[] = (await ra.json()).items ?? [];
         setNamaAkun(Object.fromEntries(akun.map((a) => [a.id, a.name])));
@@ -149,7 +155,7 @@ function TransaksiPage() {
       )
     : jumlahkan(items ?? []);
 
-  const labelKat = Object.fromEntries(kategori.map((c) => [c.id, labelKategori(c)]));
+  const petaKat = Object.fromEntries(kategori.map((c) => [c.id, c]));
 
   return (
     <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
@@ -196,7 +202,8 @@ function TransaksiPage() {
             {kategori.filter((c) => !c.hidden).map((c) => (
               <CategoryChip
                 key={c.id}
-                label={labelKategori(c)}
+                label={c.name}
+                kategori={c}
                 selected={saring === c.id}
                 onSelect={() => setSaring(c.id)}
               />
@@ -280,7 +287,7 @@ function TransaksiPage() {
                   <BarisTransaksi
                     key={t.id}
                     t={t}
-                    kategori={t.category_id ? (labelKat[t.category_id] ?? "—") : "Belum"}
+                    kategori={t.category_id ? (petaKat[t.category_id] ?? null) : null}
                     akun={namaAkun[t.account_id] ?? ""}
                     onClick={() => router.push(`/transaksi/${t.id}`)}
                   />
@@ -336,7 +343,7 @@ function BarisTransaksi({
   onClick,
 }: {
   t: Transaksi;
-  kategori: string;
+  kategori: Kategori | null;
   akun: string;
   onClick: () => void;
 }) {
@@ -362,26 +369,19 @@ function BarisTransaksi({
         cursor: "pointer",
       }}
     >
-      <span
-        style={{
-          width: 104,
-          flex: "none",
-          fontSize: "var(--text-caption-size)",
-          color: "var(--ink-3)",
-          ...satuBaris,
-        }}
-      >
-        {kategori}
-      </span>
+      <CategoryIcon
+        id={kategori?.id ?? null}
+        icon={kategori?.icon ?? null}
+        name={kategori?.name ?? ""}
+        size={36}
+      />
       <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
         <span style={{ fontSize: "var(--text-body-size)", fontWeight: 500, ...satuBaris }}>
-          {t.note ?? t.merchant ?? "—"}
+          {t.note ?? t.merchant ?? kategori?.name ?? "—"}
         </span>
-        {akun ? (
-          <span style={{ fontSize: "var(--text-caption-size)", color: "var(--ink-3)", ...satuBaris }}>
-            {akun}
-          </span>
-        ) : null}
+        <span style={{ fontSize: "var(--text-caption-size)", color: "var(--ink-3)", ...satuBaris }}>
+          {[kategori?.name ?? "Belum dikategorikan", akun].filter(Boolean).join(" · ")}
+        </span>
       </span>
       <Amount value={t.amount} direction={t.direction} size="sm" />
     </button>
