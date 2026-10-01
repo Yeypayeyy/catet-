@@ -61,16 +61,17 @@ menyalinnya ke sini; yang di bawah cuma aturan pakainya.
 
 - **Warna lewat variabel, tidak pernah hex di komponen.** `--surface`,
   `--border`, `--ink` / `--ink-2` / `--ink-3`, `--accent`.
-- **Kerangka netral + satu aksen ungu + ikon pastel.** Latar dan kartu
-  netral bergaris tipis. `--accent` ungu untuk aksi utama dan status aktif;
-  `--hero-*` (ungu solid, teks putih) hanya untuk kartu utama Ringkasan.
-  Warna lain membawa makna: `--income` (hijau) untuk pemasukan, `--warning`
-  (kuning) hanya untuk banner, `--danger` (merah) hanya untuk destruktif dan
-  gagal.
+- **Kerangka netral + biru utama + kuning tersier + ikon kategori solid.**
+  Latar dan kartu netral bergaris tipis. `--accent` biru untuk aksi utama
+  dan status aktif; `--hero-*` (biru solid, teks putih) hanya untuk kartu
+  utama Ringkasan. `--tertiary` kuning hanya untuk yang perlu ditindak
+  (antrian review, tombol Rapikan). Warna lain membawa makna: `--income`
+  (hijau) untuk pemasukan, `--warning` hanya untuk banner peringatan,
+  `--danger` (merah) hanya untuk destruktif dan gagal.
 - **Warna kategori** dari `--cat-1..7-{bg,ink,bar}`, slot dipilih
   `warnaKategori(id)` di `lib/warna.ts` supaya satu kategori selalu satu
   warna. Slot 8 netral untuk "Lainnya" dan belum dikategorikan. Tile pakai
-  `<CategoryIcon>`, batang pakai `<Bar color>`.
+  `<CategoryIcon>` (bulat), batang pakai `<Bar color>`.
 - **Pengeluaran netral, tanpa tanda minus.** Pengeluaran jauh lebih sering,
   jadi tidak diwarnai. Pemasukan `+Rp…` hijau.
 - **Nominal `Rp10.000`** — tanpa spasi, tanpa desimal, ribuan titik, selalu

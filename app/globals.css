@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
-/* Design token Catet!: kerangka netral, satu aksen ungu, ikon kategori pastel.
+/* Design token Catet!: kerangka netral, biru utama, kuning tersier, ikon
+   kategori solid.
 
-   Latar dan kartu netral bergaris tipis; ungu solid hanya untuk kartu hero dan
-   aksi utama; warna kategori pastel supaya tidak berebut dengan aksen.
+   Latar dan kartu netral bergaris tipis. Biru untuk kartu hero dan aksi utama;
+   kuning (tersier) hanya untuk yang perlu ditindak, seperti antrian review.
    Font tidak diimpor dari Google Fonts — Geist sudah dimuat next/font di
    layout.tsx. Dark mode dipasang sebagai class .dark di <html>. */
 
@@ -22,16 +23,22 @@
   --ink-3: #6e6e78;
   --ink-inverse: #fafafa;
 
-  --accent: #5b47e0;
+  --accent: #2f5bea;
   --accent-fg: #ffffff;
-  --accent-hover: #4d3ad0;
-  --accent-soft: #ece9ff;
+  --accent-hover: #2549c9;
+  --accent-soft: #e3eaff;
 
-  /* Kartu utama di Ringkasan: ungu solid, teks putih. */
-  --hero-bg: #5b47e0;
+  /* Kartu utama di Ringkasan: biru solid, teks putih. */
+  --hero-bg: #2f5bea;
   --hero-ink: #ffffff;
-  --hero-ink-2: #e6e2ff;
-  --hero-chip: #6e5ceb;
+  --hero-ink-2: #dce5ff;
+  --hero-chip: #4470f0;
+
+  /* Tersier: hanya untuk yang perlu ditindak (antrian review). */
+  --tertiary: #ffc233;
+  --tertiary-fg: #3a2600;
+  --tertiary-soft: #fff3d1;
+  --tertiary-ink: #8a5a00;
 
   /* Pengeluaran jauh lebih sering daripada pemasukan, jadi sengaja netral dan
      tanpa tanda minus. Yang diberi warna cuma yang jarang: pemasukan. */
@@ -47,20 +54,20 @@
   --danger: #be3a2e;
   --danger-bg: #fbe9e6;
 
-  --focus-ring: rgba(91, 71, 224, 0.35);
+  --focus-ring: rgba(47, 91, 234, 0.35);
   --overlay: rgba(17, 17, 20, 0.5);
 
-  /* Palet kategori. Tiap kategori dapat satu slot tetap dari id-nya
+  /* Palet kategori, solid. Tiap kategori dapat satu slot tetap dari id-nya
      (lib/warna.ts): -bg untuk tile, -ink untuk isinya, -bar untuk batang dan
      irisan donat. Slot 8 = "Lainnya" / belum dikategorikan, sengaja netral. */
-  --cat-1-bg: #daf4e8; --cat-1-ink: #12664a; --cat-1-bar: #3fbf8c;
-  --cat-2-bg: #ffe2ec; --cat-2-ink: #912a50; --cat-2-bar: #f07aa3;
-  --cat-3-bg: #dceaff; --cat-3-ink: #1d4e8f; --cat-3-bar: #6aa3f0;
-  --cat-4-bg: #ffebcf; --cat-4-ink: #7a4a0a; --cat-4-bar: #f2a945;
-  --cat-5-bg: #ece4ff; --cat-5-ink: #4b3699; --cat-5-bar: #9c84f0;
-  --cat-6-bg: #ffe4da; --cat-6-ink: #8c3418; --cat-6-bar: #f28b66;
-  --cat-7-bg: #d6f3f4; --cat-7-ink: #0f5e63; --cat-7-bar: #3db5bc;
-  --cat-8-bg: #efeff3; --cat-8-ink: #55555e; --cat-8-bar: #b4b4be;
+  --cat-1-bg: #e8551f; --cat-1-ink: #ffffff; --cat-1-bar: #e8551f;
+  --cat-2-bg: #d63a86; --cat-2-ink: #ffffff; --cat-2-bar: #d63a86;
+  --cat-3-bg: #1584c4; --cat-3-ink: #ffffff; --cat-3-bar: #1584c4;
+  --cat-4-bg: #f2b01e; --cat-4-ink: #3d2a00; --cat-4-bar: #f2b01e;
+  --cat-5-bg: #7b5be6; --cat-5-ink: #ffffff; --cat-5-bar: #7b5be6;
+  --cat-6-bg: #17a38a; --cat-6-ink: #ffffff; --cat-6-bar: #17a38a;
+  --cat-7-bg: #5e9e1f; --cat-7-ink: #ffffff; --cat-7-bar: #5e9e1f;
+  --cat-8-bg: #e4e4ea; --cat-8-ink: #55555e; --cat-8-bar: #b4b4be;
 
   color-scheme: light;
 }
@@ -78,15 +85,20 @@
   --ink-3: #8a8a95;
   --ink-inverse: #0c0c10;
 
-  --accent: #9c8cff;
+  --accent: #8fa8ff;
   --accent-fg: #0c0c10;
-  --accent-hover: #b3a7ff;
-  --accent-soft: #262140;
+  --accent-hover: #a9bcff;
+  --accent-soft: #1a2550;
 
-  --hero-bg: #5b47e0;
+  --hero-bg: #2f5bea;
   --hero-ink: #ffffff;
-  --hero-ink-2: #e6e2ff;
-  --hero-chip: #6e5ceb;
+  --hero-ink-2: #dce5ff;
+  --hero-chip: #4470f0;
+
+  --tertiary: #ffc233;
+  --tertiary-fg: #2a1c00;
+  --tertiary-soft: #352a0c;
+  --tertiary-ink: #ffd369;
 
   --income: #7fe3b4;
   --income-bg: #123a2c;
@@ -100,17 +112,17 @@
   --danger: #f0685c;
   --danger-bg: #2c1614;
 
-  --focus-ring: rgba(156, 140, 255, 0.4);
+  --focus-ring: rgba(143, 168, 255, 0.4);
   --overlay: rgba(0, 0, 0, 0.6);
 
-  --cat-1-bg: #123a2c; --cat-1-ink: #86e6be; --cat-1-bar: #4fcb97;
-  --cat-2-bg: #40182a; --cat-2-ink: #ffa3c4; --cat-2-bar: #f07aa3;
-  --cat-3-bg: #152d4d; --cat-3-ink: #a3c8ff; --cat-3-bar: #6aa3f0;
-  --cat-4-bg: #3d2c0f; --cat-4-ink: #ffcb75; --cat-4-bar: #f2a945;
-  --cat-5-bg: #2c2356; --cat-5-ink: #c9b8ff; --cat-5-bar: #9c84f0;
-  --cat-6-bg: #42200f; --cat-6-ink: #ffb396; --cat-6-bar: #f28b66;
-  --cat-7-bg: #0f3436; --cat-7-ink: #8ee3e8; --cat-7-bar: #3db5bc;
-  --cat-8-bg: #24242c; --cat-8-ink: #b4b4c0; --cat-8-bar: #5c5c68;
+  --cat-1-bg: #f06a38; --cat-1-ink: #1a0b04; --cat-1-bar: #f06a38;
+  --cat-2-bg: #ea5c9f; --cat-2-ink: #1f0712; --cat-2-bar: #ea5c9f;
+  --cat-3-bg: #3aa7e6; --cat-3-ink: #04131d; --cat-3-bar: #3aa7e6;
+  --cat-4-bg: #f5bd3c; --cat-4-ink: #241800; --cat-4-bar: #f5bd3c;
+  --cat-5-bg: #9c84f0; --cat-5-ink: #120a2e; --cat-5-bar: #9c84f0;
+  --cat-6-bg: #2bc2a6; --cat-6-ink: #03201a; --cat-6-bar: #2bc2a6;
+  --cat-7-bg: #86c84a; --cat-7-ink: #0f1e02; --cat-7-bar: #86c84a;
+  --cat-8-bg: #2a2a33; --cat-8-ink: #b4b4c0; --cat-8-bar: #5c5c68;
 
   color-scheme: dark;
 }
@@ -205,6 +217,8 @@
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-fg: var(--tertiary-fg);
   --color-income: var(--income);
   --color-income-bg: var(--income-bg);
   --color-expense: var(--expense);

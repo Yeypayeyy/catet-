@@ -993,7 +993,7 @@ export function Bar({
 /* ---------- Ikon kategori ---------- */
 
 /**
- * Tile pastel berisi emoji kategori. Warnanya tetap per kategori (lib/warna.ts),
+ * Tile bulat berwarna solid berisi emoji kategori. Warnanya tetap per kategori (lib/warna.ts),
  * jadi sama dengan batang di Ringkasan dan irisan donat di Statistik.
  */
 export function CategoryIcon({
@@ -1013,7 +1013,7 @@ export function CategoryIcon({
         width: size,
         height: size,
         flexShrink: 0,
-        borderRadius: Math.round(size * 0.3),
+        borderRadius: "50%",
         background: w.bg,
         color: w.ink,
         display: "inline-flex",

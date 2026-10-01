@@ -102,7 +102,7 @@ export default function ShowcasePage() {
                 style={{
                   width: 40,
                   height: 40,
-                  borderRadius: 12,
+                  borderRadius: "50%",
                   background: `var(--cat-${n}-bg)`,
                   color: `var(--cat-${n}-ink)`,
                   display: "inline-flex",

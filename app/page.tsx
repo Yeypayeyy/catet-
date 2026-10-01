@@ -223,12 +223,26 @@ export default function RingkasanPage() {
                 background: "var(--surface)",
                 border: "1px solid var(--border)",
                 borderRadius: "var(--radius-lg)",
-                padding: "var(--space-3) var(--space-3) var(--space-3) var(--card-x)",
+                padding: "var(--space-3)",
                 color: "var(--ink)",
                 textDecoration: "none",
               }}
             >
-              <Icon name="kotak-masuk" size={22} color="var(--accent)" />
+              <span
+                style={{
+                  width: 36,
+                  height: 36,
+                  flexShrink: 0,
+                  borderRadius: "var(--radius-sm)",
+                  background: "var(--tertiary-soft)",
+                  color: "var(--tertiary-ink)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Icon name="kotak-masuk" size={20} />
+              </span>
               <span style={{ flex: 1, minWidth: 0, fontWeight: 500 }}>
                 {data.pending_count} transaksi menunggu kategori
               </span>
@@ -238,8 +252,8 @@ export default function RingkasanPage() {
                   height: "var(--control-h-sm)",
                   padding: "0 var(--space-4)",
                   borderRadius: "var(--radius-md)",
-                  background: "var(--accent)",
-                  color: "var(--accent-fg)",
+                  background: "var(--tertiary)",
+                  color: "var(--tertiary-fg)",
                   fontSize: "var(--text-label-size)",
                   fontWeight: 600,
                   display: "inline-flex",
