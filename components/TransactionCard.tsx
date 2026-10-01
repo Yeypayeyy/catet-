@@ -108,7 +108,7 @@ export function TransactionCard({
             {meta}
           </div>
         </div>
-        <Amount value={amount} direction={direction} size="md" />
+        <Amount value={amount} direction={direction === "credit" ? "credit" : "neutral"} size="md" />
       </div>
     );
   }
@@ -119,7 +119,7 @@ export function TransactionCard({
           keduanya berebut baris yang sama dan metanya kepotong. */}
       <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
         {title ? <div style={barisJudul}>{title}</div> : null}
-        <Amount value={amount} direction={direction} size="lg" />
+        <Amount value={amount} direction={direction === "credit" ? "credit" : "neutral"} size="lg" />
         {meta ? <div style={barisMeta}>{meta}</div> : null}
       </div>
       <div style={{ display: "flex", gap: "var(--space-2)" }}>

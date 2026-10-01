@@ -372,7 +372,7 @@ function Donat({ irisan, total, jenis }: { irisan: Irisan[]; total: bigint; jeni
         }}
       >
         <span style={{ fontSize: "var(--text-caption-size)", color: "var(--ink-3)" }}>Total</span>
-        <Amount value={total} direction={jenis} size="md" />
+        <Amount value={total} direction={jenis === "credit" ? "credit" : "neutral"} size="md" />
       </div>
     </div>
   );
@@ -452,7 +452,7 @@ function BarisIrisan({
       >
         {x.persen}%
       </span>
-      <Amount value={x.total} direction={jenis} size="sm" />
+      <Amount value={x.total} direction={jenis === "credit" ? "credit" : "neutral"} size="sm" />
     </button>
   );
 }

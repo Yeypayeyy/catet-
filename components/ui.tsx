@@ -24,8 +24,9 @@ const UKURAN_NOMINAL = {
 } as const;
 
 /**
- * Nominal Rupiah. Pemasukan hijau dengan "+", pengeluaran merah tanpa minus,
- * dan "neutral" (bawaan) untuk saldo dan total yang bukan arus uang.
+ * Nominal Rupiah. Pemasukan hijau dengan "+". "neutral" (bawaan) untuk saldo,
+ * total, dan pengeluaran di daftar. "debit" (merah redup, tanpa minus) hanya
+ * untuk angka ringkasan pengeluaran, supaya layar tidak merah semua.
  * Pada ukuran besar "Rp" mengecil dan meredup supaya angkanya yang menonjol.
  */
 export function Amount({

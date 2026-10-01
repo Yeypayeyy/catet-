@@ -254,7 +254,7 @@ export default function ReviewPage() {
             {/* Nominal ikut ditampilkan supaya jelas transaksi mana yang
                 sedang dikerjakan — popupnya menutupi kartunya. */}
             <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-3)" }}>
-              <Amount value={dibuka.amount} direction={dibuka.direction} size="lg" />
+              <Amount value={dibuka.amount} direction={dibuka.direction === "credit" ? "credit" : "neutral"} size="lg" />
               <span
                 style={{
                   fontSize: "var(--text-caption-size)",

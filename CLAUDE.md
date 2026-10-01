@@ -66,17 +66,18 @@ menyalinnya ke sini; yang di bawah cuma aturan pakainya.
   dan status aktif; `--hero-*` (biru solid, teks putih) hanya untuk kartu
   utama Ringkasan. `--tertiary` kuning hanya untuk yang perlu ditindak
   (antrian review, tombol Rapikan). Warna lain membawa makna: `--income`
-  (hijau) untuk pemasukan, `--expense` (merah) untuk pengeluaran, `--warning`
+  (hijau) untuk pemasukan, `--expense` (merah redup) untuk ringkasan pengeluaran, `--warning`
   hanya untuk banner peringatan, `--danger` untuk destruktif dan gagal.
 - **Warna kategori** dari `--cat-1..12-{bg,ink,bar}`, slot dipilih
   `warnaKategori(id)` di `lib/warna.ts` dari posisi kategori per jenis
   (yang tersembunyi di belakang), supaya satu kategori selalu satu warna dan
   12 kategori aktif pertama tidak kembar. Slot 0 netral untuk "Lainnya" dan
-  belum dikategorikan. Merah tidak ada di palet ini. Tile pakai
+  belum dikategorikan. Palet ini kalem (kroma rendah); merah tidak ada. Tile pakai
   `<CategoryIcon>` (bulat), batang pakai `<Bar color>`.
-- **Pemasukan hijau `+Rp…`, pengeluaran merah tanpa tanda minus.** Lewat
-  `<Amount direction>`: `credit` hijau, `debit` merah, `neutral` (bawaan)
-  untuk saldo dan total yang bukan arus uang.
+- **Pemasukan hijau `+Rp…`; pengeluaran netral di daftar, merah redup hanya
+  di angka ringkasan, tanpa tanda minus.** Lewat `<Amount direction>`:
+  `credit` hijau, `neutral` (bawaan) untuk saldo, total, dan baris daftar,
+  `debit` hanya untuk ringkasan pengeluaran. Merah terang melelahkan mata.
 - **Nominal `Rp10.000`** — tanpa spasi, tanpa desimal, ribuan titik, selalu
   tabular-nums. Satu-satunya pemformat: `formatRupiah()` di `lib/format.ts`.
 - **Dark mode via class `.dark` di `<html>`.** Dipasang dark-first di

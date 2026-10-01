@@ -183,7 +183,7 @@ function DetailKategori() {
                   {h.namaHari}
                   {perTahun || rentang ? ` · ${labelBulan(h.tanggal.slice(0, 7))}` : ""}
                 </span>
-                <Amount value={jenis === "debit" ? h.keluar : h.masuk} direction={jenis} size="sm" />
+                <Amount value={jenis === "debit" ? h.keluar : h.masuk} direction={jenis === "credit" ? "credit" : "neutral"} size="sm" />
               </div>
               {h.items.map((t) => (
                 <button
@@ -214,7 +214,7 @@ function DetailKategori() {
                       {namaAkun[t.account_id] ?? ""}
                     </span>
                   </span>
-                  <Amount value={t.amount} direction={t.direction} size="sm" />
+                  <Amount value={t.amount} direction={t.direction === "credit" ? "credit" : "neutral"} size="sm" />
                 </button>
               ))}
             </section>

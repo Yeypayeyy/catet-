@@ -364,7 +364,7 @@ export default function RingkasanPage() {
                         >
                           {k.name}
                         </span>
-                        <Amount value={k.total} direction="debit" size="sm" />
+                        <Amount value={k.total} size="sm" />
                       </div>
                       <Bar value={BigInt(k.total)} max={maks} color={warnaKategori(k.id).bar} />
                     </div>
