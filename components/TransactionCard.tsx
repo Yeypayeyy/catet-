@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icon } from "@/components/Icon";
 import { Amount, Button } from "@/components/ui";
 
 export type SaranKategori = { id: string; name: string; icon: string | null };
@@ -24,6 +25,7 @@ export function TransactionCard({
   meta,
   category,
   onOpen,
+  onHapus,
   pending = false,
   onClick,
 }: {
@@ -35,6 +37,8 @@ export function TransactionCard({
   meta?: string | null;
   category?: string | null;
   onOpen?: () => void;
+  /** Tombol sampah di samping "Kategori". */
+  onHapus?: () => void;
   pending?: boolean;
   onClick?: () => void;
 }) {
@@ -108,9 +112,22 @@ export function TransactionCard({
         <Amount value={amount} direction={direction} size="lg" />
         {meta ? <div style={barisMeta}>{meta}</div> : null}
       </div>
-      <Button variant="secondary" full onClick={onOpen} disabled={pending}>
-        Kategori
-      </Button>
+      <div style={{ display: "flex", gap: "var(--space-2)" }}>
+        <div style={{ flex: 1 }}>
+          <Button variant="secondary" full onClick={onOpen} disabled={pending}>
+            Kategori
+          </Button>
+        </div>
+        {onHapus ? (
+          <Button
+            variant="danger"
+            ariaLabel="Hapus transaksi"
+            onClick={onHapus}
+            disabled={pending}
+            icon={<Icon name="sampah" size={18} />}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

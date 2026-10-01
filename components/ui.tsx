@@ -93,6 +93,7 @@ export function Button({
   children,
   onClick,
   type = "button",
+  ariaLabel,
 }: {
   variant?: keyof typeof VARIAN;
   size?: "md" | "sm";
@@ -102,6 +103,8 @@ export function Button({
   children?: ReactNode;
   onClick?: () => void;
   type?: "button" | "submit";
+  /** Wajib untuk tombol yang isinya cuma ikon. */
+  ariaLabel?: string;
 }) {
   const [ditekan, setDitekan] = useState(false);
   const [fokus, setFokus] = useState(false);
@@ -109,6 +112,7 @@ export function Button({
   return (
     <button
       type={type}
+      aria-label={ariaLabel}
       disabled={disabled}
       onClick={onClick}
       onPointerDown={() => setDitekan(true)}

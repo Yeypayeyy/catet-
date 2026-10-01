@@ -93,10 +93,9 @@ export default function ReviewPage() {
 
   // Untuk transaksi yang tidak perlu dicatat: salah tangkap notifikasi,
   // transfer ke rekening sendiri. Soft delete di server.
-  async function hapus() {
-    if (!dibuka || menyimpan) return;
+  async function hapus(t: Transaksi) {
+    if (menyimpan) return;
     if (!confirm("Hapus transaksi ini?")) return;
-    const t = dibuka;
     setMenyimpan(true);
     const r = await fetch(`/api/transactions/${t.id}`, { method: "DELETE" });
     setMenyimpan(false);
@@ -200,6 +199,7 @@ export default function ReviewPage() {
               title={t.note ?? t.merchant}
               meta={[formatWaktu(t.occurred_at), t.bank_category].filter(Boolean).join(" · ")}
               onOpen={() => buka(t)}
+              onHapus={() => void hapus(t)}
               pending={Boolean(memudar[t.id])}
             />
           </div>
@@ -226,7 +226,7 @@ export default function ReviewPage() {
           <button
             type="button"
             aria-label="Hapus transaksi"
-            onClick={() => void hapus()}
+            onClick={() => dibuka && void hapus(dibuka)}
             disabled={menyimpan}
             style={{
               width: 44,
