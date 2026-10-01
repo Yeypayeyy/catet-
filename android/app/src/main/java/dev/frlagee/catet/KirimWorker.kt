@@ -191,7 +191,7 @@ class KirimWorker(context: Context, params: WorkerParameters) : Worker(context, 
                 )
             )
             val notif = Notification.Builder(context, CHANNEL_PERINGATAN)
-                .setSmallIcon(android.R.drawable.stat_notify_error)
+                .setSmallIcon(R.drawable.ic_notif)
                 .setContentTitle(context.getString(R.string.peringatan_judul))
                 .setContentText(context.getString(R.string.peringatan_isi, tertunda))
                 .setOngoing(false)

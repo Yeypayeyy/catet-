@@ -41,7 +41,7 @@ object PromptKategori {
 
         val id = transactionId.hashCode()
         val builder = Notification.Builder(context, CHANNEL)
-            .setSmallIcon(android.R.drawable.ic_menu_edit)
+            .setSmallIcon(R.drawable.ic_notif)
             .setContentTitle(Uang.format(amount))
             .setContentText(
                 if (direction == "credit") context.getString(R.string.prompt_masuk)

@@ -41,7 +41,7 @@ object NotifikasiUji {
         berikutnya++
 
         val notif = Notification.Builder(context, CHANNEL)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.ic_notif)
             // Judulnya harus persis sama dengan milik myBCA, karena justru itu
             // yang sedang diuji.
             .setContentTitle(NotifikasiListener.JUDUL_FINANSIAL)

@@ -85,7 +85,7 @@ class BootReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
             val notif = Notification.Builder(context, CHANNEL_INGATKAN)
-                .setSmallIcon(android.R.drawable.ic_popup_sync)
+                .setSmallIcon(R.drawable.ic_notif)
                 .setContentTitle(context.getString(R.string.ingatkan_judul))
                 .setContentText(context.getString(R.string.ingatkan_isi))
                 .setContentIntent(buka)

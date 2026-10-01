@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- minSdk 26: adaptive icon vector saja, tanpa PNG per kepadatan layar. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ikon_latar" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <!-- Ikon bertema Android 13+ (mengikuti warna wallpaper). -->
+    <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
+</adaptive-icon>

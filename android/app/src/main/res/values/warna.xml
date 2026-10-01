@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Latar ikon peluncur, sama dengan warna aksen dan kartu hero di web. -->
+    <color name="ikon_latar">#2F5BEA</color>
+</resources>
