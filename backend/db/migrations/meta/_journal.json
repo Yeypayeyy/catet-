@@ -43,6 +43,13 @@
       "when": 1789317050365,
       "tag": "0005_small_rhino",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790816716466,
+      "tag": "0006_tiresome_white_queen",
+      "breakpoints": true
     }
   ]
 }

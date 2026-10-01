@@ -32,7 +32,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name"),
   ...timestamps,
-});
+}).enableRLS();
 
 export const devices = pgTable("devices", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -44,7 +44,7 @@ export const devices = pgTable("devices", {
   tokenHash: text("token_hash").notNull().unique(),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   ...timestamps,
-});
+}).enableRLS();
 
 export const accounts = pgTable("accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -57,7 +57,7 @@ export const accounts = pgTable("accounts", {
   // tidak pernah disimpan sebagai cache (lihat PRD bagian 5).
   initBalance: bigint("init_balance", { mode: "bigint" }).notNull().default(sql`0`),
   ...timestamps,
-});
+}).enableRLS();
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -77,7 +77,7 @@ export const categories = pgTable("categories", {
   hiddenAt: timestamp("hidden_at", { withTimezone: true }),
   parentId: uuid("parent_id").references((): AnyPgColumn => categories.id),
   ...timestamps,
-});
+}).enableRLS();
 
 // Payload mentah dari device, disimpan APA ADANYA sebelum parsing. Selalu.
 export const inboxEvents = pgTable(
@@ -101,7 +101,7 @@ export const inboxEvents = pgTable(
     ...timestamps,
   },
   (t) => [uniqueIndex("inbox_events_client_uuid_uniq").on(t.clientUuid)],
-);
+).enableRLS();
 
 export const transactions = pgTable(
   "transactions",
@@ -134,7 +134,7 @@ export const transactions = pgTable(
     index("transactions_user_occurred_idx").on(t.userId, t.occurredAt),
     index("transactions_user_reviewed_idx").on(t.userId, t.isReviewed),
   ],
-);
+).enableRLS();
 
 // Merchant dipelajari dari input user, bukan dari notifikasi — myBCA tidak
 // mengirim nama merchant sama sekali.
@@ -150,7 +150,7 @@ export const merchants = pgTable(
     ...timestamps,
   },
   (t) => [uniqueIndex("merchants_user_name_uniq").on(t.userId, t.name)],
-);
+).enableRLS();
 
 // Mesin saran kategori. Satu tabel untuk tiga jenis aturan; yang membedakan
 // cuma kolom mana yang terisi:
@@ -179,7 +179,7 @@ export const categoryRules = pgTable(
     ...timestamps,
   },
   (t) => [index("category_rules_user_idx").on(t.userId)],
-);
+).enableRLS();
 
 // Label bebas untuk transaksi: "reimburse kantor", "patungan trip". Sengaja
 // terpisah dari kategori — satu transaksi punya satu kategori tapi bisa
@@ -195,7 +195,7 @@ export const tags = pgTable(
     ...timestamps,
   },
   (t) => [uniqueIndex("tags_user_name_uniq").on(t.userId, t.name)],
-);
+).enableRLS();
 
 export const transactionTags = pgTable(
   "transaction_tags",
@@ -210,7 +210,7 @@ export const transactionTags = pgTable(
   // Hard delete di sini disengaja: ini baris relasi, bukan data. Melepas tag
   // berarti melepas, bukan menyimpan jejak.
   (t) => [primaryKey({ columns: [t.transactionId, t.tagId] })],
-);
+).enableRLS();
 
 // Event yang tetap gagal diproses setelah beberapa percobaan. Payloadnya sendiri
 // tidak disalin ke sini — sudah aman di inbox_events, cukup ditunjuk.
@@ -232,4 +232,4 @@ export const deadLetters = pgTable(
     ...timestamps,
   },
   (t) => [uniqueIndex("dead_letters_inbox_event_uniq").on(t.inboxEventId)],
-);
+).enableRLS();
