@@ -43,3 +43,37 @@ export function potongIrisan(rows: BarisKategori[], n = 7): Irisan[] {
     pecahan: total === 0n ? 0 : Number(r.total) / Number(total),
   }));
 }
+
+/** Posisi label satu irisan pie: sudut tengahnya, sisi label, dan tinggi baris label. */
+export type LetakLabel = { sudut: number; kanan: boolean; y: number };
+
+/**
+ * Label pie di luar lingkaran, kiri atau kanan mengikuti sudut tengah irisan.
+ * Label di satu sisi diurut dari atas lalu didorong supaya berjarak minimal
+ * `jarak`, tetap di dalam [atas, bawah]. Sudut 0 = jam 12, searah jarum jam.
+ */
+export function letakLabel(
+  pecahan: number[],
+  { cy, r, jarak, atas, bawah }: { cy: number; r: number; jarak: number; atas: number; bawah: number },
+): LetakLabel[] {
+  let awal = 0;
+  const hasil = pecahan.map((p) => {
+    const sudut = (awal + p / 2) * 2 * Math.PI;
+    awal += p;
+    // Garis siku keluar sedikit dari tepi, lalu mendatar ke label.
+    return { sudut, kanan: Math.sin(sudut) >= 0, y: cy - Math.cos(sudut) * (r + 14) };
+  });
+
+  for (const kanan of [true, false]) {
+    const sisi = hasil.filter((h) => h.kanan === kanan).sort((a, b) => a.y - b.y);
+    for (let i = 0; i < sisi.length; i++) {
+      const min = i === 0 ? atas : sisi[i - 1].y + jarak;
+      sisi[i].y = Math.max(sisi[i].y, min);
+    }
+    for (let i = sisi.length - 1; i >= 0; i--) {
+      const maks = i === sisi.length - 1 ? bawah : sisi[i + 1].y - jarak;
+      sisi[i].y = Math.min(sisi[i].y, maks);
+    }
+  }
+  return hasil;
+}

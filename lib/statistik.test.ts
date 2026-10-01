@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { persen, potongIrisan, rasioNabung } from "./statistik.ts";
+import { letakLabel, persen, potongIrisan, rasioNabung } from "./statistik.ts";
 
 const baris = (n: number) =>
   Array.from({ length: n }, (_, i) => ({
@@ -57,5 +57,25 @@ describe("rasioNabung", () => {
   it("positif dan negatif", () => {
     assert.equal(rasioNabung(20000000n, 5535000n), "72,3%");
     assert.equal(rasioNabung(1000n, 1500n), "−50,0%");
+  });
+});
+
+describe("letakLabel", () => {
+  const opsi = { cy: 120, r: 64, jarak: 30, atas: 16, bawah: 224 };
+
+  it("irisan kanan berlabel kanan, irisan kiri berlabel kiri", () => {
+    const [a, b] = letakLabel([0.5, 0.5], opsi);
+    assert.equal(a.kanan, true);
+    assert.equal(b.kanan, false);
+  });
+
+  it("delapan irisan (batas potongIrisan): label tidak bertumpuk dan tetap di dalam batas", () => {
+    // Satu irisan besar di kanan, tujuh kecil berdesakan di kiri.
+    const hasil = letakLabel([0.43, 0.1, 0.1, 0.08, 0.08, 0.08, 0.07, 0.06], opsi);
+    for (const kanan of [true, false]) {
+      const ys = hasil.filter((h) => h.kanan === kanan).map((h) => h.y).sort((a, b) => a - b);
+      for (let i = 1; i < ys.length; i++) assert.ok(ys[i] - ys[i - 1] >= opsi.jarak - 1e-9, `${ys}`);
+      for (const y of ys) assert.ok(y >= opsi.atas && y <= opsi.bawah, `${y}`);
+    }
   });
 });

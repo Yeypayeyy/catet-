@@ -33,7 +33,7 @@ import {
   tanggalWib,
 } from "@/lib/periode";
 import { catatUrutanKategori, warnaKategori } from "@/lib/warna";
-import { potongIrisan, rasioNabung, type BarisKategori, type Irisan } from "@/lib/statistik";
+import { letakLabel, potongIrisan, rasioNabung, type BarisKategori, type Irisan } from "@/lib/statistik";
 
 type Statistik = {
   income: string;
@@ -229,7 +229,7 @@ function StatistikPage() {
             />
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
-              <Donat irisan={irisan} total={totalJenis} jenis={jenis} />
+              <Pie irisan={irisan} total={totalJenis} jenis={jenis} />
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {irisan.map((x) =>
                   x.id === "lainnya" ? (
@@ -328,52 +328,83 @@ function KartuAngka({ judul, teks, warna }: { judul: string; teks: string; warna
   );
 }
 
-/**
- * Donat dari lingkaran bertumpuk: tiap irisan satu <circle> yang cuma
- * menggambar sepanjang pecahannya (stroke-dasharray), digeser sejauh irisan
- * sebelumnya. Tanpa library, tanpa hitung busur.
- */
-function Donat({ irisan, total, jenis }: { irisan: Irisan[]; total: bigint; jenis: "debit" | "credit" }) {
-  const r = 80;
-  const keliling = 2 * Math.PI * r;
+// Pie dengan label di luar dan garis siku ke tiap irisan, digambar sendiri
+// tanpa library. Ukuran dalam satuan viewBox; SVG-nya melebar mengikuti kartu.
+// Lebarnya kira-kira lebar kartu di HP 375px, jadi teks tampil hampir 1:1.
+const PIE = { w: 320, h: 240, cx: 160, cy: 120, r: 60 };
+
+function potongNama(nama: string) {
+  return nama.length > 11 ? `${nama.slice(0, 10).trimEnd()}…` : nama;
+}
+
+function Pie({ irisan, total, jenis }: { irisan: Irisan[]; total: bigint; jenis: "debit" | "credit" }) {
+  const { w, h, cx, cy, r } = PIE;
+  const titik = (sudut: number, jari: number) => [cx + Math.sin(sudut) * jari, cy - Math.cos(sudut) * jari];
+  const label = letakLabel(
+    irisan.map((x) => x.pecahan),
+    { cy, r, jarak: 30, atas: 16, bawah: h - 16 },
+  );
+
   // Awal tiap irisan = jumlah pecahan irisan sebelumnya.
-  const awal = irisan.map((_, i) => irisan.slice(0, i).reduce((a, x) => a + x.pecahan, 0) * keliling);
+  const awal = irisan.map((_, i) => irisan.slice(0, i).reduce((a, x) => a + x.pecahan, 0));
+  const potong = irisan.map((x, i) => {
+    const a0 = awal[i] * 2 * Math.PI;
+    const a1 = (awal[i] + x.pecahan) * 2 * Math.PI;
+    const [x0, y0] = titik(a0, r);
+    const [x1, y1] = titik(a1, r);
+    const besar = x.pecahan > 0.5 ? 1 : 0;
+    return `M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 ${besar} 1 ${x1} ${y1} Z`;
+  });
 
   return (
-    <div style={{ position: "relative", width: 200, height: 200, marginInline: "auto" }}>
-      <svg width={200} height={200} viewBox="0 0 200 200" style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
-        <circle cx={100} cy={100} r={r} fill="none" stroke="var(--surface-2)" strokeWidth={28} />
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-1)" }}>
+      <span style={{ fontSize: "var(--text-caption-size)", color: "var(--ink-3)" }}>Total</span>
+      <Amount value={total} direction={jenis === "credit" ? "credit" : "neutral"} size="md" />
+      <svg viewBox={`0 0 ${w} ${h}`} width="100%" role="img" aria-label="Pembagian per kategori" style={{ display: "block" }}>
+        {irisan.map((x, i) =>
+          // Satu irisan penuh: busur awal = akhir tidak tergambar, jadi lingkaran.
+          x.pecahan >= 0.9999 ? (
+            <circle key={x.id} cx={cx} cy={cy} r={r} fill={warnaIrisan(x)} />
+          ) : (
+            <path key={x.id} d={potong[i]} fill={warnaIrisan(x)} stroke="var(--surface)" strokeWidth={1.5} />
+          ),
+        )}
         {irisan.map((x, i) => {
-          const panjang = x.pecahan * keliling;
+          const { sudut, kanan, y } = label[i];
+          const [ax, ay] = titik(sudut, r - 2);
+          const [ex, ey] = titik(sudut, r + 10);
+          const lx = kanan ? cx + r + 20 : cx - r - 20;
+          const arah = kanan ? 1 : -1;
+          const warna = warnaIrisan(x);
           return (
-            <circle
-              key={x.id}
-              cx={100}
-              cy={100}
-              r={r}
-              fill="none"
-              stroke={warnaIrisan(x)}
-              strokeWidth={28}
-              strokeDasharray={`${panjang} ${keliling - panjang}`}
-              strokeDashoffset={-awal[i]}
-            />
+            <g key={x.id}>
+              <polyline
+                points={`${ax},${ay} ${ex},${ey} ${lx},${y}`}
+                fill="none"
+                stroke={warna}
+                strokeWidth={1.25}
+              />
+              <circle cx={lx + arah * 5} cy={y - 5} r={3.5} fill={warna} />
+              <text
+                x={lx + arah * 12}
+                y={y - 1}
+                textAnchor={kanan ? "start" : "end"}
+                style={{ fontSize: 12, fontWeight: 600, fill: "var(--ink)" }}
+              >
+                {potongNama(x.name)}
+              </text>
+              <text
+                x={lx + arah * 12}
+                y={y + 13}
+                textAnchor={kanan ? "start" : "end"}
+                style={{ fontSize: 11, fill: "var(--ink-3)", fontVariantNumeric: "tabular-nums" }}
+              >
+                {x.persen}%
+              </text>
+            </g>
           );
         })}
       </svg>
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 2,
-        }}
-      >
-        <span style={{ fontSize: "var(--text-caption-size)", color: "var(--ink-3)" }}>Total</span>
-        <Amount value={total} direction={jenis === "credit" ? "credit" : "neutral"} size="md" />
-      </div>
     </div>
   );
 }
