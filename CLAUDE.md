@@ -61,11 +61,12 @@ menyalinnya ke sini; yang di bawah cuma aturan pakainya.
 
 - **Warna lewat variabel, tidak pernah hex di komponen.** `--surface`,
   `--border`, `--ink` / `--ink-2` / `--ink-3`, `--accent`.
-- **Pastel lembut + satu aksen ungu.** Latar bersemburat lilac, `--accent`
-  ungu untuk aksi utama dan status aktif, `--hero-*` untuk kartu utama
-  Ringkasan. Warna lain membawa makna: `--income` (hijau) untuk pemasukan,
-  `--warning` (peach/kuning) hanya untuk banner, `--danger` (merah) hanya
-  untuk destruktif dan gagal.
+- **Kerangka netral + satu aksen ungu + ikon pastel.** Latar dan kartu
+  netral bergaris tipis. `--accent` ungu untuk aksi utama dan status aktif;
+  `--hero-*` (ungu solid, teks putih) hanya untuk kartu utama Ringkasan.
+  Warna lain membawa makna: `--income` (hijau) untuk pemasukan, `--warning`
+  (kuning) hanya untuk banner, `--danger` (merah) hanya untuk destruktif dan
+  gagal.
 - **Warna kategori** dari `--cat-1..7-{bg,ink,bar}`, slot dipilih
   `warnaKategori(id)` di `lib/warna.ts` supaya satu kategori selalu satu
   warna. Slot 8 netral untuk "Lainnya" dan belum dikategorikan. Tile pakai

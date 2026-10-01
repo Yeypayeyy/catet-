@@ -1,36 +1,37 @@
 @import "tailwindcss";
 
-/* Design token Catet!, arah "pastel lembut".
+/* Design token Catet!: kerangka netral, satu aksen ungu, ikon kategori pastel.
 
-   Latar bersemburat lilac, satu aksen ungu, dan palet pastel per kategori.
+   Latar dan kartu netral bergaris tipis; ungu solid hanya untuk kartu hero dan
+   aksi utama; warna kategori pastel supaya tidak berebut dengan aksen.
    Font tidak diimpor dari Google Fonts — Geist sudah dimuat next/font di
    layout.tsx. Dark mode dipasang sebagai class .dark di <html>. */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --bg: #f5f3ff;
+  --bg: #f7f7f9;
   --surface: #ffffff;
-  --surface-2: #f0eef8;
-  --surface-pressed: #e7e3f5;
-  --border: #ebe8f7;
-  --border-strong: #d3cee9;
+  --surface-2: #f0f0f4;
+  --surface-pressed: #e8e8ed;
+  --border: #e9e9ee;
+  --border-strong: #d4d4dc;
 
-  --ink: #1e1b3a;
-  --ink-2: #4e4a72;
-  --ink-3: #6e6a94;
-  --ink-inverse: #fafaff;
+  --ink: #111114;
+  --ink-2: #55555e;
+  --ink-3: #6e6e78;
+  --ink-inverse: #fafafa;
 
-  --accent: #5b4fc4;
+  --accent: #5b47e0;
   --accent-fg: #ffffff;
-  --accent-hover: #4c41ae;
-  --accent-soft: #e4deff;
+  --accent-hover: #4d3ad0;
+  --accent-soft: #ece9ff;
 
-  /* Kartu utama di Ringkasan. */
-  --hero-bg: #e4deff;
-  --hero-ink: #241e5c;
-  --hero-ink-2: #544c9c;
-  --hero-chip: #f2efff;
+  /* Kartu utama di Ringkasan: ungu solid, teks putih. */
+  --hero-bg: #5b47e0;
+  --hero-ink: #ffffff;
+  --hero-ink-2: #e6e2ff;
+  --hero-chip: #6e5ceb;
 
   /* Pengeluaran jauh lebih sering daripada pemasukan, jadi sengaja netral dan
      tanpa tanda minus. Yang diberi warna cuma yang jarang: pemasukan. */
@@ -38,16 +39,16 @@
   --income-bg: #daf4e8;
   --expense: var(--ink);
 
-  --warning: #9a6512;
-  --warning-fg: #6e430a;
-  --warning-bg: #fff0d9;
-  --warning-border: #f3d9ae;
+  --warning: #9a6a12;
+  --warning-fg: #6b4a0b;
+  --warning-bg: #fbf2de;
+  --warning-border: #e8d3a4;
 
   --danger: #be3a2e;
   --danger-bg: #fbe9e6;
 
-  --focus-ring: rgba(91, 79, 196, 0.35);
-  --overlay: rgba(30, 27, 58, 0.45);
+  --focus-ring: rgba(91, 71, 224, 0.35);
+  --overlay: rgba(17, 17, 20, 0.5);
 
   /* Palet kategori. Tiap kategori dapat satu slot tetap dari id-nya
      (lib/warna.ts): -bg untuk tile, -ink untuk isinya, -bar untuk batang dan
@@ -59,47 +60,47 @@
   --cat-5-bg: #ece4ff; --cat-5-ink: #4b3699; --cat-5-bar: #9c84f0;
   --cat-6-bg: #ffe4da; --cat-6-ink: #8c3418; --cat-6-bar: #f28b66;
   --cat-7-bg: #d6f3f4; --cat-7-ink: #0f5e63; --cat-7-bar: #3db5bc;
-  --cat-8-bg: #eeedf3; --cat-8-ink: #55536b; --cat-8-bar: #b3b0c6;
+  --cat-8-bg: #efeff3; --cat-8-ink: #55555e; --cat-8-bar: #b4b4be;
 
   color-scheme: light;
 }
 
 .dark {
-  --bg: #13111d;
-  --surface: #1c1a2b;
-  --surface-2: #24213a;
-  --surface-pressed: #2d2a45;
-  --border: #2a2740;
-  --border-strong: #3d3958;
+  --bg: #0c0c10;
+  --surface: #16161d;
+  --surface-2: #1e1e26;
+  --surface-pressed: #26262f;
+  --border: #26262f;
+  --border-strong: #3a3a45;
 
-  --ink: #f1efff;
-  --ink-2: #c2bee0;
-  --ink-3: #8c87ad;
-  --ink-inverse: #13111d;
+  --ink: #f2f2f5;
+  --ink-2: #b4b4be;
+  --ink-3: #8a8a95;
+  --ink-inverse: #0c0c10;
 
-  --accent: #c9c0ff;
-  --accent-fg: #1e1b3a;
-  --accent-hover: #b7acff;
-  --accent-soft: #322b66;
+  --accent: #9c8cff;
+  --accent-fg: #0c0c10;
+  --accent-hover: #b3a7ff;
+  --accent-soft: #262140;
 
-  --hero-bg: #2d2660;
-  --hero-ink: #f1efff;
-  --hero-ink-2: #bdb5f6;
-  --hero-chip: #3a3275;
+  --hero-bg: #5b47e0;
+  --hero-ink: #ffffff;
+  --hero-ink-2: #e6e2ff;
+  --hero-chip: #6e5ceb;
 
   --income: #7fe3b4;
   --income-bg: #123a2c;
   --expense: var(--ink);
 
-  --warning: #f2b54d;
-  --warning-fg: #ffd592;
-  --warning-bg: #3a2b12;
-  --warning-border: #5a4420;
+  --warning: #e3b549;
+  --warning-fg: #f0cb6e;
+  --warning-bg: #262012;
+  --warning-border: #4a3e1c;
 
   --danger: #f0685c;
   --danger-bg: #2c1614;
 
-  --focus-ring: rgba(201, 192, 255, 0.4);
+  --focus-ring: rgba(156, 140, 255, 0.4);
   --overlay: rgba(0, 0, 0, 0.6);
 
   --cat-1-bg: #123a2c; --cat-1-ink: #86e6be; --cat-1-bar: #4fcb97;
@@ -109,7 +110,7 @@
   --cat-5-bg: #2c2356; --cat-5-ink: #c9b8ff; --cat-5-bar: #9c84f0;
   --cat-6-bg: #42200f; --cat-6-ink: #ffb396; --cat-6-bar: #f28b66;
   --cat-7-bg: #0f3436; --cat-7-ink: #8ee3e8; --cat-7-bar: #3db5bc;
-  --cat-8-bg: #2a2838; --cat-8-ink: #b4b0cc; --cat-8-bar: #6c6885;
+  --cat-8-bg: #24242c; --cat-8-ink: #b4b4c0; --cat-8-bar: #5c5c68;
 
   color-scheme: dark;
 }

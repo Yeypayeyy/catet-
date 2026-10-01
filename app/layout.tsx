@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   // Dipakai sebagai PWA di home screen: tidak ada address bar, jadi warna
   // status bar diambil dari sini.
-  themeColor: "#13111d",
+  themeColor: "#0c0c10",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

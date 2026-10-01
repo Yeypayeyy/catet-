@@ -138,6 +138,10 @@ export default function RingkasanPage() {
 
           <div
             style={{
+              // Amount membaca --expense dan --ink-2; di atas ungu keduanya
+              // harus ikut putih, jadi ditimpa untuk kartu ini saja.
+              ["--expense" as string]: "var(--hero-ink)",
+              ["--ink-2" as string]: "var(--hero-ink-2)",
               background: "var(--hero-bg)",
               color: "var(--hero-ink)",
               borderRadius: "var(--radius-lg)",
@@ -216,19 +220,35 @@ export default function RingkasanPage() {
                 display: "flex",
                 alignItems: "center",
                 gap: "var(--space-3)",
-                background: "var(--warning-bg)",
-                border: "1px solid transparent",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
                 borderRadius: "var(--radius-lg)",
-                padding: "var(--space-4) var(--card-x)",
-                color: "var(--warning-fg)",
+                padding: "var(--space-3) var(--space-3) var(--space-3) var(--card-x)",
+                color: "var(--ink)",
                 textDecoration: "none",
               }}
             >
-              <Icon name="kotak-masuk" size={22} />
-              <span style={{ flex: 1, fontWeight: 500 }}>
+              <Icon name="kotak-masuk" size={22} color="var(--accent)" />
+              <span style={{ flex: 1, minWidth: 0, fontWeight: 500 }}>
                 {data.pending_count} transaksi menunggu kategori
               </span>
-              <Icon name="panah-kanan" size={20} />
+              {/* Seluruh kartu tetap satu tautan; ini cuma penanda aksinya. */}
+              <span
+                style={{
+                  height: "var(--control-h-sm)",
+                  padding: "0 var(--space-4)",
+                  borderRadius: "var(--radius-md)",
+                  background: "var(--accent)",
+                  color: "var(--accent-fg)",
+                  fontSize: "var(--text-label-size)",
+                  fontWeight: 600,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  flexShrink: 0,
+                }}
+              >
+                Rapikan
+              </span>
             </a>
           ) : null}
 
