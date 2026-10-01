@@ -142,9 +142,9 @@ export default function RingkasanPage() {
 
           <div
             style={{
-              // Amount membaca --expense dan --ink-2; di atas ungu keduanya
-              // harus ikut putih, jadi ditimpa untuk kartu ini saja.
-              ["--expense" as string]: "var(--hero-ink)",
+              // Amount membaca --ink dan --ink-2; di atas biru keduanya harus
+              // ikut putih, jadi ditimpa untuk kartu ini saja.
+              ["--ink" as string]: "var(--hero-ink)",
               ["--ink-2" as string]: "var(--hero-ink-2)",
               background: "var(--hero-bg)",
               color: "var(--hero-ink)",
@@ -306,7 +306,7 @@ export default function RingkasanPage() {
                   Pengeluaran {data?.month.label ?? ""}
                 </div>
                 <div style={{ marginTop: 2 }}>
-                  <Amount value={data?.month.spending ?? "0"} size="lg" />
+                  <Amount value={data?.month.spending ?? "0"} direction="debit" size="lg" />
                 </div>
               </div>
               <span
@@ -364,7 +364,7 @@ export default function RingkasanPage() {
                         >
                           {k.name}
                         </span>
-                        <Amount value={k.total} size="sm" />
+                        <Amount value={k.total} direction="debit" size="sm" />
                       </div>
                       <Bar value={BigInt(k.total)} max={maks} color={warnaKategori(k.id).bar} />
                     </div>

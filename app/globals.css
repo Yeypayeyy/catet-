@@ -40,11 +40,11 @@
   --tertiary-soft: #fff3d1;
   --tertiary-ink: #8a5a00;
 
-  /* Pengeluaran jauh lebih sering daripada pemasukan, jadi sengaja netral dan
-     tanpa tanda minus. Yang diberi warna cuma yang jarang: pemasukan. */
+  /* Nominal: pemasukan hijau, pengeluaran merah, tanpa tanda minus. Saldo
+     dan total yang bukan arus memakai --ink. */
   --income: #11714f;
   --income-bg: #daf4e8;
-  --expense: var(--ink);
+  --expense: #d7362b;
 
   --warning: #9a6a12;
   --warning-fg: #6b4a0b;
@@ -57,17 +57,24 @@
   --focus-ring: rgba(47, 91, 234, 0.35);
   --overlay: rgba(17, 17, 20, 0.5);
 
-  /* Palet kategori, solid. Tiap kategori dapat satu slot tetap dari id-nya
-     (lib/warna.ts): -bg untuk tile, -ink untuk isinya, -bar untuk batang dan
-     irisan donat. Slot 8 = "Lainnya" / belum dikategorikan, sengaja netral. */
+  /* Palet kategori, solid, 12 warna. Rona disebar merata di roda warna;
+     merah sengaja tidak ada supaya tidak tertukar dengan pengeluaran. Tiap
+     kategori dapat satu slot dari urutannya (lib/warna.ts): -bg untuk tile,
+     -ink untuk isinya, -bar untuk batang dan irisan donat. Slot 0 = "Lainnya"
+     / belum dikategorikan, sengaja netral. */
+  --cat-0-bg: #e4e4ea; --cat-0-ink: #55555e; --cat-0-bar: #b4b4be;
   --cat-1-bg: #e8551f; --cat-1-ink: #ffffff; --cat-1-bar: #e8551f;
   --cat-2-bg: #d63a86; --cat-2-ink: #ffffff; --cat-2-bar: #d63a86;
   --cat-3-bg: #1584c4; --cat-3-ink: #ffffff; --cat-3-bar: #1584c4;
   --cat-4-bg: #f2b01e; --cat-4-ink: #3d2a00; --cat-4-bar: #f2b01e;
   --cat-5-bg: #7b5be6; --cat-5-ink: #ffffff; --cat-5-bar: #7b5be6;
   --cat-6-bg: #17a38a; --cat-6-ink: #ffffff; --cat-6-bar: #17a38a;
-  --cat-7-bg: #5e9e1f; --cat-7-ink: #ffffff; --cat-7-bar: #5e9e1f;
-  --cat-8-bg: #e4e4ea; --cat-8-ink: #55555e; --cat-8-bar: #b4b4be;
+  --cat-7-bg: #84b819; --cat-7-ink: #1f2b00; --cat-7-bar: #84b819;
+  --cat-8-bg: #b13bc9; --cat-8-ink: #ffffff; --cat-8-bar: #b13bc9;
+  --cat-9-bg: #4459d9; --cat-9-ink: #ffffff; --cat-9-bar: #4459d9;
+  --cat-10-bg: #a0673a; --cat-10-ink: #ffffff; --cat-10-bar: #a0673a;
+  --cat-11-bg: #2e9e4f; --cat-11-ink: #ffffff; --cat-11-bar: #2e9e4f;
+  --cat-12-bg: #0e97ae; --cat-12-ink: #ffffff; --cat-12-bar: #0e97ae;
 
   color-scheme: light;
 }
@@ -102,7 +109,7 @@
 
   --income: #7fe3b4;
   --income-bg: #123a2c;
-  --expense: var(--ink);
+  --expense: #ff7a6e;
 
   --warning: #e3b549;
   --warning-fg: #f0cb6e;
@@ -115,14 +122,19 @@
   --focus-ring: rgba(143, 168, 255, 0.4);
   --overlay: rgba(0, 0, 0, 0.6);
 
+  --cat-0-bg: #2a2a33; --cat-0-ink: #b4b4c0; --cat-0-bar: #5c5c68;
   --cat-1-bg: #f06a38; --cat-1-ink: #1a0b04; --cat-1-bar: #f06a38;
   --cat-2-bg: #ea5c9f; --cat-2-ink: #1f0712; --cat-2-bar: #ea5c9f;
   --cat-3-bg: #3aa7e6; --cat-3-ink: #04131d; --cat-3-bar: #3aa7e6;
   --cat-4-bg: #f5bd3c; --cat-4-ink: #241800; --cat-4-bar: #f5bd3c;
   --cat-5-bg: #9c84f0; --cat-5-ink: #120a2e; --cat-5-bar: #9c84f0;
   --cat-6-bg: #2bc2a6; --cat-6-ink: #03201a; --cat-6-bar: #2bc2a6;
-  --cat-7-bg: #86c84a; --cat-7-ink: #0f1e02; --cat-7-bar: #86c84a;
-  --cat-8-bg: #2a2a33; --cat-8-ink: #b4b4c0; --cat-8-bar: #5c5c68;
+  --cat-7-bg: #9fcf3a; --cat-7-ink: #172200; --cat-7-bar: #9fcf3a;
+  --cat-8-bg: #cf6be0; --cat-8-ink: #24062b; --cat-8-bar: #cf6be0;
+  --cat-9-bg: #7e8cf2; --cat-9-ink: #0b1033; --cat-9-bar: #7e8cf2;
+  --cat-10-bg: #c89566; --cat-10-ink: #241405; --cat-10-bar: #c89566;
+  --cat-11-bg: #4cc274; --cat-11-ink: #04200d; --cat-11-bar: #4cc274;
+  --cat-12-bg: #3cc4db; --cat-12-ink: #022027; --cat-12-bar: #3cc4db;
 
   color-scheme: dark;
 }

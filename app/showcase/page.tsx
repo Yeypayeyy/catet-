@@ -60,7 +60,7 @@ export default function ShowcasePage() {
           <Amount value="5000000" size="xl" />
           <Amount value="2000" size="xl" />
           <Amount value="1250000" direction="credit" size="lg" />
-          <Amount value="63177" size="md" />
+          <Amount value="63177" direction="debit" size="md" />
           <Amount value="7200" size="sm" muted />
         </div>
       </Bagian>
@@ -92,10 +92,10 @@ export default function ShowcasePage() {
       </Bagian>
 
       <Bagian judul="Warna kategori">
-        {/* Delapan slot: tujuh warna dan satu netral. Pastikan isi tile
+        {/* Dua belas warna dan satu netral (slot 0). Pastikan isi tile
             terbaca dan batangnya kelihatan di kedua tema. */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
             <div key={n} style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
               <span
                 aria-hidden
@@ -114,7 +114,7 @@ export default function ShowcasePage() {
                 {n}
               </span>
               <div style={{ flex: 1 }}>
-                <Bar value={BigInt(9 - n)} max={8n} color={`var(--cat-${n}-bar)`} />
+                <Bar value={BigInt(13 - n)} max={13n} color={`var(--cat-${n}-bar)`} />
               </div>
             </div>
           ))}

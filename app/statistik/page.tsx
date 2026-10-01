@@ -208,7 +208,7 @@ function StatistikPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--card-gap)" }}>
           <KartuAngka judul="Pemasukan" teks={`+${formatRupiah(masuk)}`} warna="var(--income)" />
-          <KartuAngka judul="Pengeluaran" teks={formatRupiah(keluar)} warna="var(--ink)" />
+          <KartuAngka judul="Pengeluaran" teks={formatRupiah(keluar)} warna="var(--expense)" />
           <KartuAngka judul="Arus kas bersih" teks={formatRupiah(masuk - keluar)} warna="var(--ink)" />
           <KartuAngka judul="Rasio nabung" teks={rasioNabung(masuk, keluar)} warna="var(--ink)" />
         </div>
@@ -496,7 +496,7 @@ function Tren({
         >
           <span style={{ height: 100, width: "100%", display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 2 }}>
             <span style={{ width: "40%", height: `${tinggi(m.income)}%`, background: "var(--income)", borderRadius: 2 }} />
-            <span style={{ width: "40%", height: `${tinggi(m.spending)}%`, background: "var(--ink-3)", borderRadius: 2 }} />
+            <span style={{ width: "40%", height: `${tinggi(m.spending)}%`, background: "var(--expense)", borderRadius: 2 }} />
           </span>
           <span
             style={{

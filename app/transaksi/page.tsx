@@ -280,7 +280,7 @@ function TransaksiPage() {
                     {h.namaHari}
                   </span>
                   {h.masuk > 0n ? <Amount value={h.masuk} direction="credit" size="sm" /> : null}
-                  {h.keluar > 0n ? <Amount value={h.keluar} size="sm" muted /> : null}
+                  {h.keluar > 0n ? <Amount value={h.keluar} direction="debit" size="sm" /> : null}
                 </button>
 
                 {h.items.map((t) => (
@@ -431,7 +431,7 @@ function DaftarBulanan({
               <span style={{ fontSize: "var(--text-caption-size)" }}>—</span>
             ) : (
               <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                <Amount value={keluar} size="sm" />
+                <Amount value={keluar} direction="debit" size="sm" />
                 <span style={{ display: "flex", gap: "var(--space-2)", fontSize: "var(--text-caption-size)" }}>
                   {masuk > 0n ? <Amount value={masuk} direction="credit" size="sm" /> : null}
                   <span style={{ color: "var(--ink-3)", fontVariantNumeric: "tabular-nums" }}>

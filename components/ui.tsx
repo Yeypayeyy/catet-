@@ -24,22 +24,24 @@ const UKURAN_NOMINAL = {
 } as const;
 
 /**
- * Nominal Rupiah. Pengeluaran netral tanpa minus, pemasukan hijau dengan "+".
+ * Nominal Rupiah. Pemasukan hijau dengan "+", pengeluaran merah tanpa minus,
+ * dan "neutral" (bawaan) untuk saldo dan total yang bukan arus uang.
  * Pada ukuran besar "Rp" mengecil dan meredup supaya angkanya yang menonjol.
  */
 export function Amount({
   value,
-  direction = "debit",
+  direction = "neutral",
   size = "md",
   muted = false,
 }: {
   value: bigint | number | string;
-  direction?: "debit" | "credit";
+  direction?: "debit" | "credit" | "neutral";
   size?: keyof typeof UKURAN_NOMINAL;
   muted?: boolean;
 }) {
   const teks = formatRupiah(value);
   const masuk = direction === "credit";
+  const warna = masuk ? "var(--income)" : direction === "debit" ? "var(--expense)" : "var(--ink)";
   const kecilkanPrefix = size === "xl" || size === "lg";
   const angka = teks.replace(/^−?Rp/, "");
   const tanda = teks.startsWith("−") ? "−" : masuk ? "+" : "";
@@ -50,7 +52,7 @@ export function Amount({
         fontFamily: "var(--font-sans)",
         fontVariantNumeric: "tabular-nums lining-nums",
         fontFeatureSettings: "var(--amount-features)",
-        color: muted ? "var(--ink-2)" : masuk ? "var(--income)" : "var(--expense)",
+        color: muted ? "var(--ink-2)" : warna,
         whiteSpace: "nowrap",
         ...UKURAN_NOMINAL[size],
       }}
@@ -62,7 +64,7 @@ export function Amount({
             ? {
                 fontSize: "calc(1em * var(--amount-prefix-scale))",
                 fontWeight: 500,
-                color: muted ? "var(--ink-3)" : masuk ? "var(--income)" : "var(--ink-2)",
+                color: muted ? "var(--ink-3)" : direction === "neutral" ? "var(--ink-2)" : warna,
                 marginRight: "0.08em",
                 letterSpacing: 0,
               }

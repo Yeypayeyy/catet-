@@ -40,14 +40,11 @@ export function NavPeriode({
   );
 }
 
-/**
- * Tiga angka periode. Pengeluaran netral seperti di tempat lain; merah hanya
- * untuk destruktif dan gagal.
- */
+/** Tiga angka periode: pemasukan hijau, pengeluaran merah, selisih netral. */
 export function RingkasanPeriode({ masuk, keluar }: { masuk: bigint; keluar: bigint }) {
   const kolom = [
     { label: "Pemasukan", teks: `+${formatRupiah(masuk)}`, warna: "var(--income)" },
-    { label: "Pengeluaran", teks: formatRupiah(keluar), warna: "var(--ink)" },
+    { label: "Pengeluaran", teks: formatRupiah(keluar), warna: "var(--expense)" },
     { label: "Selisih", teks: formatRupiah(masuk - keluar), warna: "var(--ink)" },
   ];
 
